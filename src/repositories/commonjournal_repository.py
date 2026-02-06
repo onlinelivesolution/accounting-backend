@@ -17,7 +17,7 @@ from src.schemas.journal_schema import JournalCreate
 from src.repositories.interfaces.icommonjournal_repository import ICommonJournalRepository
 from common.enum.commenum import DefaultAccount
 from src.repositories.interfaces.icommonjournal_repository import ICommonJournalRepository
-
+VAT_INPUT_ACCOUNT_CODE = "VAT_INPUT"
 
 class CommonJournalRepository(GenericRepository[Journal], ICommonJournalRepository):
     def __init__(self, db: AsyncSession):
@@ -125,12 +125,12 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
     
     async def create_general_journal_entry(self, request):
 
-        # 1. Validate accounting period
+        # 1. Open period
         period = await self._get_open_period()
         if not period:
             raise ValueError("No open accounting period found")
 
-        # 2. Create Journal Header
+        # 2. Journal Header
         header = JournalHeader(
             journalDate=request.journalDate,
             journalType=request.journalType,
@@ -140,28 +140,48 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
         )
 
         self.db.add(header)
-        await self.db.flush()  # gets journalHeaderID
+        await self.db.flush()
 
-        # 3. Insert Journal Details
+        # 3. Journal Details
         for row in request.details:
-            amount = Decimal(row.amount)
+            base_amount = Decimal(row.amount)
+            vat_rate = Decimal(row.vatRate or 0)
+            vat_amount = (base_amount * vat_rate / 100).quantize(Decimal("0.01"))
+            total_amount = base_amount + vat_amount
 
-            self.db.add_all([
+            # Expense / Debit
+            self.db.add(
                 JournalDetail(
                     journalHeaderID=header.journalHeaderID,
                     detailItemCode=row.debitItemCode,
-                    debitAmount=amount,
-                    creditAmount=Decimal(0)
-                ),
+                    debitAmount=base_amount,
+                    creditAmount=Decimal(0),
+                    narration=row.narration
+                )
+            )
+
+            # VAT line (optional)
+            if vat_amount > 0:
+                self.db.add(
+                    JournalDetail(
+                        journalHeaderID=header.journalHeaderID,
+                        detailItemCode=VAT_INPUT_ACCOUNT_CODE,
+                        debitAmount=vat_amount,
+                        creditAmount=Decimal(0),
+                        narration="VAT Input"
+                    )
+                )
+
+            # Credit (Cash / Bank / Payable)
+            self.db.add(
                 JournalDetail(
                     journalHeaderID=header.journalHeaderID,
                     detailItemCode=row.creditItemCode,
                     debitAmount=Decimal(0),
-                    creditAmount=amount
+                    creditAmount=total_amount,
+                    narration=row.narration
                 )
-            ])
+            )
 
-        # ✅ 4. COMMIT (THIS WAS MISSING)
         await self.db.commit()
-
         return header
