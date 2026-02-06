@@ -10,3 +10,5 @@ class AccountingPeriod(Base):
     periodEnd = Column(Date, nullable=False)
     isClosed = Column(Boolean, default=False)
     closedAt = Column(DateTime)
+    fiscalYear = Column(String(20), nullable=False) 
+    companyCode = Column(String(2), nullable=False)

@@ -2,7 +2,9 @@ from common.generic.generic_repository import GenericRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from decimal import Decimal
+from datetime import datetime
 from src.models.controlitem import ControlItem
+from src.models.vataccountmapping import VatAccountMapping
 from src.models.journal_model import Journal
 from src.models.journalheader_model import JournalHeader
 from src.models.journaldetail_model import JournalDetail
@@ -17,19 +19,41 @@ from src.schemas.journal_schema import JournalCreate
 from src.repositories.interfaces.icommonjournal_repository import ICommonJournalRepository
 from common.enum.commenum import DefaultAccount
 from src.repositories.interfaces.icommonjournal_repository import ICommonJournalRepository
-
+VAT_INPUT_ACCOUNT_CODE = "VAT_INPUT"
 
 class CommonJournalRepository(GenericRepository[Journal], ICommonJournalRepository):
     def __init__(self, db: AsyncSession):
         super().__init__(Journal, db)
     
-    async def _get_open_period(self) -> AccountingPeriod | None:
+    # async def _get_open_period(self) -> AccountingPeriod | None:
+    #     result = await self.db.execute(
+    #         select(AccountingPeriod)
+    #         .where(AccountingPeriod.isClosed == False)
+    #         .order_by(AccountingPeriod.periodStart.desc())
+    #     )
+    #     return result.scalars().first()
+    
+    async def get_vat_detail_item(
+        self,
+        vat_type: str,
+        company_code: str
+    ):
+        result = await self.db.execute(
+            select(VatAccountMapping.detailItemCode)
+            .where(
+                VatAccountMapping.vatType == vat_type,
+                VatAccountMapping.companyCode == company_code,
+                VatAccountMapping.isActive == True
+            )
+        )
+        return result.scalar_one_or_none()
+    
+    async def _get_open_period(self):
         result = await self.db.execute(
             select(AccountingPeriod)
             .where(AccountingPeriod.isClosed == False)
-            .order_by(AccountingPeriod.periodStart.desc())
         )
-        return result.scalars().first()
+        return result.scalar_one_or_none()
     
 
     async def get_detail_item_by_account_id(self, account_id: int) -> str:
@@ -123,45 +147,151 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
         return f"{next_code:02d}"
     
+
+
     async def create_general_journal_entry(self, request):
 
-        # 1. Validate accounting period
+        # 1. Get Open Accounting Period
         period = await self._get_open_period()
         if not period:
             raise ValueError("No open accounting period found")
 
-        # 2. Create Journal Header
+        fiscal_year = period.fiscalYear
+        company_code = period.companyCode
+
+        # 2. Journal Header
         header = JournalHeader(
             journalDate=request.journalDate,
             journalType=request.journalType,
             referenceNo=request.referenceNo,
             description=request.description,
-            periodID=period.periodID
+            periodID=period.periodID,
+            fiscalYear=fiscal_year,
+            createdDate=datetime.utcnow()
         )
 
         self.db.add(header)
-        await self.db.flush()  # gets journalHeaderID
+        await self.db.flush()
+        
+        vat_detail_item = await self.get_vat_detail_item("INPUT", company_code)
 
-        # 3. Insert Journal Details
+        # 3. Journal Details
         for row in request.details:
-            amount = Decimal(row.amount)
+            base_amount = Decimal(row.amount)
+            vat_rate = Decimal(row.vatRate or 0)
+            vat_amount = (base_amount * vat_rate / 100).quantize(Decimal("0.01"))
+            total_amount = base_amount + vat_amount
 
-            self.db.add_all([
+            # Debit (Expense)
+            self.db.add(
                 JournalDetail(
                     journalHeaderID=header.journalHeaderID,
                     detailItemCode=row.debitItemCode,
-                    debitAmount=amount,
-                    creditAmount=Decimal(0)
-                ),
+                    debitAmount=base_amount,
+                    creditAmount=Decimal(0),
+                    narration=row.narration,
+                    vatRate=vat_rate,
+                    fiscalYear=fiscal_year
+                )
+            )
+
+            # VAT Line (Optional)
+            if vat_amount > 0:
+                
+                if not vat_detail_item:
+                   raise ValueError("VAT Input account is not configured")
+               
+                self.db.add(
+                    JournalDetail(
+                        journalHeaderID=header.journalHeaderID,
+                        detailItemCode = vat_detail_item,
+                        debitAmount=vat_amount,
+                        creditAmount=Decimal(0),
+                        narration="VAT Input",
+                        vatRate=vat_rate,
+                        fiscalYear=fiscal_year
+                    )
+                )
+
+            # Credit (Cash / Bank / Payable)
+            self.db.add(
                 JournalDetail(
                     journalHeaderID=header.journalHeaderID,
                     detailItemCode=row.creditItemCode,
                     debitAmount=Decimal(0),
-                    creditAmount=amount
+                    creditAmount=total_amount,
+                    narration=row.narration,
+                    fiscalYear=fiscal_year
                 )
-            ])
+            )
 
-        # ✅ 4. COMMIT (THIS WAS MISSING)
         await self.db.commit()
-
         return header
+
+    
+    # async def create_general_journal_entry(self, request):
+
+    #     # 1. Open period
+    #     period = await self._get_open_period()
+    #     if not period:
+    #         raise ValueError("No open accounting period found")
+
+    #     # 2. Journal Header
+    #     header = JournalHeader(
+    #         journalDate=request.journalDate,
+    #         journalType=request.journalType,
+    #         referenceNo=request.referenceNo,
+    #         description=request.description,
+    #         periodID=period.periodID
+    #     )
+
+    #     self.db.add(header)
+    #     await self.db.flush()
+
+    #     # 3. Journal Details
+    #     for row in request.details:
+    #         base_amount = Decimal(row.amount)
+    #         vat_rate = Decimal(row.vatRate or 0)
+    #         vat_amount = (base_amount * vat_rate / 100).quantize(Decimal("0.01"))
+    #         total_amount = base_amount + vat_amount
+
+    #         # Expense / Debit
+    #         self.db.add(
+    #             JournalDetail(
+    #                 journalHeaderID=header.journalHeaderID,
+    #                 detailItemCode=row.debitItemCode,
+    #                 debitAmount=base_amount,
+    #                 creditAmount=Decimal(0),
+    #                 narration=row.narration,
+    #                 fiscalYear=row.fiscalYear
+    #             )
+    #         )
+
+    #         # VAT line (optional)
+    #         if vat_amount > 0:
+    #             self.db.add(
+    #                 JournalDetail(
+    #                     journalHeaderID=header.journalHeaderID,
+    #                     detailItemCode=VAT_INPUT_ACCOUNT_CODE,
+    #                     debitAmount=vat_amount,
+    #                     creditAmount=Decimal(0),
+    #                     narration="VAT Input",
+    #                     vatRate=row.vatRate,
+    #                     fiscalYear=row.fiscalYear
+    #                 )
+    #             )
+
+    #         # Credit (Cash / Bank / Payable)
+    #         self.db.add(
+    #             JournalDetail(
+    #                 journalHeaderID=header.journalHeaderID,
+    #                 detailItemCode=row.creditItemCode,
+    #                 debitAmount=Decimal(0),
+    #                 creditAmount=total_amount,
+    #                 narration=row.narration,
+    #                 fiscalYear=row.fiscalYear
+    #             )
+    #         )
+
+    #     await self.db.commit()
+    #     return header

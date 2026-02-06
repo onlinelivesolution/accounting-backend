@@ -7,6 +7,7 @@ class JournalDetailRequest(BaseModel):
     debitItemCode: str
     creditItemCode: str
     amount: float
+    vatRate: float
     narration: Optional[str] = None
 
 

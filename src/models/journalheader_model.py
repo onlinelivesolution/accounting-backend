@@ -11,11 +11,16 @@ class JournalHeader(Base):
     journalDate = Column(Date, nullable=False)    
     referenceNo = Column(String(100), nullable=True)
     description = Column(String(255), nullable=True)
-    createdDate = Column(DateTime, server_default=func.now())
     journalType = Column(String(50), nullable=False)  # OPENING, GENERAL, ADJUSTMENT
+    fiscalYear = Column(String(20), nullable=False) 
     periodID = Column(
         Integer,
         ForeignKey("AccountingPeriod.periodID"),
+        nullable=False
+    )
+    createdDate = Column(
+        DateTime,
+        server_default=func.now(),
         nullable=False
     )
 
