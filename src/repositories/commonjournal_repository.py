@@ -151,14 +151,21 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
     async def create_general_journal_entry(self, request):
 
+<<<<<<< HEAD
         # 1. Get Open Accounting Period
+=======
+        # 1. Open period
+>>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
         period = await self._get_open_period()
         if not period:
             raise ValueError("No open accounting period found")
 
+<<<<<<< HEAD
         fiscal_year = period.fiscalYear
         company_code = period.companyCode
 
+=======
+>>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
         # 2. Journal Header
         header = JournalHeader(
             journalDate=request.journalDate,
@@ -172,8 +179,11 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
         self.db.add(header)
         await self.db.flush()
+<<<<<<< HEAD
         
         vat_detail_item = await self.get_vat_detail_item("INPUT", company_code)
+=======
+>>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
 
         # 3. Journal Details
         for row in request.details:
@@ -182,13 +192,18 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
             vat_amount = (base_amount * vat_rate / 100).quantize(Decimal("0.01"))
             total_amount = base_amount + vat_amount
 
+<<<<<<< HEAD
             # Debit (Expense)
+=======
+            # Expense / Debit
+>>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
             self.db.add(
                 JournalDetail(
                     journalHeaderID=header.journalHeaderID,
                     detailItemCode=row.debitItemCode,
                     debitAmount=base_amount,
                     creditAmount=Decimal(0),
+<<<<<<< HEAD
                     narration=row.narration,
                     vatRate=vat_rate,
                     fiscalYear=fiscal_year
@@ -210,6 +225,21 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                         narration="VAT Input",
                         vatRate=vat_rate,
                         fiscalYear=fiscal_year
+=======
+                    narration=row.narration
+                )
+            )
+
+            # VAT line (optional)
+            if vat_amount > 0:
+                self.db.add(
+                    JournalDetail(
+                        journalHeaderID=header.journalHeaderID,
+                        detailItemCode=VAT_INPUT_ACCOUNT_CODE,
+                        debitAmount=vat_amount,
+                        creditAmount=Decimal(0),
+                        narration="VAT Input"
+>>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
                     )
                 )
 
@@ -220,12 +250,17 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                     detailItemCode=row.creditItemCode,
                     debitAmount=Decimal(0),
                     creditAmount=total_amount,
+<<<<<<< HEAD
                     narration=row.narration,
                     fiscalYear=fiscal_year
+=======
+                    narration=row.narration
+>>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
                 )
             )
 
         await self.db.commit()
+<<<<<<< HEAD
         return header
 
     
@@ -295,3 +330,6 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
     #     await self.db.commit()
     #     return header
+=======
+        return header
+>>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d

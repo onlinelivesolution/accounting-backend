@@ -28,6 +28,7 @@ class CommonJournalService(ICommonJournalService):
 
         return await self.repository.create_general_journal_entry(request)
 
+<<<<<<< HEAD
         
     # async def create_general_journal_entry(self, request):
     #     if not request.details:
@@ -44,6 +45,8 @@ class CommonJournalService(ICommonJournalService):
     #             raise ValueError("Invalid VAT rate")
 
     #     return await self.repository.create_general_journal_entry(request)
+=======
+>>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
         
     async def create_opening_balance_journal(self, payload):
 
