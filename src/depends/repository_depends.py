@@ -5,6 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.repositories.interfaces.icommon_repository import ICommonRepository
 from src.repositories.common_repository import CommonRepository
 
+from src.repositories.interfaces.icommondropdown_repository import ICommonDropdownRepository
+from src.repositories.commondropdown_repository import CommonDropdownRepository
+
 from src.repositories.interfaces.ireportingitem_repository import IReportingItemRepository
 from src.repositories.reportingitem_repository import ReportingItemRepository
 
@@ -70,6 +73,17 @@ from src.repositories.accountreport__repository import AccountReportRepository
 
 from src.repositories.interfaces.ibanktransaction_repository import IBankTransactionRepository
 from src.repositories.banktransaction_repository import BankTransactionRepository
+
+def get_vatrate_dropdown_repository(db: AsyncSession = Depends(get_db))->ICommonDropdownRepository:
+    return CommonDropdownRepository(db)
+
+
+from src.repositories.interfaces.iquotation_repository import IQuotationRepository
+from src.repositories.quotation_repository import QuotationRepository
+
+def get_quotation_repository(db: AsyncSession = Depends(get_db))->IQuotationRepository:
+    return QuotationRepository(db)
+
 
 def get_bank_transaction_repository(db: AsyncSession = Depends(get_db))->IBankTransactionRepository:
     return BankTransactionRepository(db)

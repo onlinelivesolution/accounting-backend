@@ -21,6 +21,11 @@ from src.repositories.detailitem_repository import DetailItemRepository
 from src.services.detailitem_service import DetailItemService
 from src.services.interfaces.idetailitem_service import IDetailItemService
 
+from src.depends.repository_depends import get_vatrate_dropdown_repository
+from src.repositories.interfaces.icommondropdown_repository import ICommonDropdownRepository
+from src.services.interfaces.icommondropdown_service import ICommonDropdownService
+from src.services.commondropdown_service import CommonDropdownService
+
 from src.depends.repository_depends import get_reportingitem_repository
 from src.repositories.interfaces.ireportingitem_repository import IReportingItemRepository
 from src.services.interfaces.ireportingitem_service import IReportingItemService
@@ -168,6 +173,15 @@ def get_db_period_service(db: AsyncSession = Depends(get_async_db),
 def get_period_service(repository: IPeriodRepository = Depends(get_period_repository))->IPeriodService:
     return PeriodService(repository)
 
+
+from src.depends.repository_depends import get_quotation_repository
+from src.repositories.interfaces.iquotation_repository import IQuotationRepository
+from src.services.interfaces.iquotation_service import IQuotationService
+from src.services.quotation_service import QuotationService
+
+def get_quotation_service(repository: IQuotationRepository = Depends(get_quotation_repository))->IQuotationService:
+    return QuotationService(repository)
+
 def get_balance_sheet_service(repository: IBalanceSheetRepository = Depends(get_balance_sheet_repository))->IBalanceSheetService:
     return BalanceSheetService(repository)
 
@@ -224,3 +238,6 @@ def get_generatesalary_service(repository: IGenerateSalaryRepository = Depends(g
 
 def get_salarydetail_service(repository: ISalaryDetailRepository = Depends(get_salarydetail_repository))->ISalaryDetailService: 
     return SalaryDetailService(repository)
+
+def get_common_dropdown_service(repository: ICommonDropdownRepository = Depends(get_vatrate_dropdown_repository))->ICommonDropdownService:
+    return CommonDropdownService(repository)

@@ -5,24 +5,32 @@ from typing import List
 from src.schemas.journal_schema import JournalCreate
 from src.services.interfaces.icommonjournal_service import ICommonJournalService
 from src.schemas.commonjournal_schema import JournalEntryRequest
-from src.schemas.generaljournal_schema import JournalRequest
 from src.depends.service_depends import get_commonjournal_service
+from src.schemas.generaljournal_schema import JournalCreateRequest
+from fastapi import Request
+from fastapi import APIRouter, Depends, Request
+import json
+
 
 router = APIRouter(prefix="/api/commonjournal", tags=["Common Journal Router"])
 
-# @router.post("/createGeneralJournal")
-# async def create_general_journal_entry(rows: List[dict],
-#     service: ICommonJournalService = Depends(get_commonjournal_service)
-# ):
-#     await service.create_general_journal_entry(rows)
-#     return {"message": "Journal saved successfully"}
-
 @router.post("/createGeneralJournalEntry")
-async def create_general_journal_entry(
-    request: JournalRequest,
+async def create_general_journal(
+    request: JournalCreateRequest,
     service: ICommonJournalService = Depends(get_commonjournal_service)
 ):
+    print("📥 Parsed Request (Pydantic):")
+    print(request)
+
     return await service.create_general_journal_entry(request)
+
+
+# @router.post("/createGeneralJournalEntry")
+# async def create_general_journal_entry(
+#     request: JournalRequest,
+#     service: ICommonJournalService = Depends(get_commonjournal_service)
+# ):
+#     return await service.create_general_journal_entry(request)
 
 @router.post("/journalForOpeningBankBalance")
 async def create_opening_balance_journal(

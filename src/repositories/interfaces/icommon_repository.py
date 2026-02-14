@@ -1,6 +1,7 @@
 # src/repositories/interfaces/ireportingitem_repository.py
 from typing import List, Any
 from src.schemas.accounttype_schema import AccountTypeDropdown
+from src.schemas.commondropdown_schema import LineItemDropdown
 from src.dto.bankdropdown import BankDropdown
 from src.schemas.branch_schema import BranchDropdown
 from src.schemas.country_schemas import CountryDropdown

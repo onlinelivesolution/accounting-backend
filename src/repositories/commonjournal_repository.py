@@ -11,6 +11,7 @@ from src.models.journaldetail_model import JournalDetail
 from src.models.accountingperiod import AccountingPeriod
 from src.models.controlitem import ControlItem
 from src.models.reportingitem import ReportingItem
+from decimal import Decimal, ROUND_HALF_UP
 from src.models.detailitem import DetailItem
 from sqlalchemy import select, func, cast, Integer
 from src.models.activitycenter import ActivityCenter
@@ -151,21 +152,14 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
     async def create_general_journal_entry(self, request):
 
-<<<<<<< HEAD
-        # 1. Get Open Accounting Period
-=======
         # 1. Open period
->>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
         period = await self._get_open_period()
         if not period:
             raise ValueError("No open accounting period found")
-
-<<<<<<< HEAD
+        
         fiscal_year = period.fiscalYear
         company_code = period.companyCode
 
-=======
->>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
         # 2. Journal Header
         header = JournalHeader(
             journalDate=request.journalDate,
@@ -179,67 +173,52 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
         self.db.add(header)
         await self.db.flush()
-<<<<<<< HEAD
-        
+
         vat_detail_item = await self.get_vat_detail_item("INPUT", company_code)
-=======
->>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
 
         # 3. Journal Details
         for row in request.details:
+
+            base_amount = row.amount
+            vat_percent = row.vatPercent or Decimal("0")
+            vat_amount = row.vatAmount
+            total_amount = row.totalAmount
+
             base_amount = Decimal(row.amount)
             vat_rate = Decimal(row.vatRate or 0)
-            vat_amount = (base_amount * vat_rate / 100).quantize(Decimal("0.01"))
+            vat_amount = (base_amount * vat_rate / Decimal(100)).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
             total_amount = base_amount + vat_amount
 
-<<<<<<< HEAD
-            # Debit (Expense)
-=======
             # Expense / Debit
->>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
             self.db.add(
                 JournalDetail(
                     journalHeaderID=header.journalHeaderID,
                     detailItemCode=row.debitItemCode,
                     debitAmount=base_amount,
-                    creditAmount=Decimal(0),
-<<<<<<< HEAD
+                    creditAmount=Decimal("0.00"),
                     narration=row.narration,
-                    vatRate=vat_rate,
                     fiscalYear=fiscal_year
-                )
-            )
-
-            # VAT Line (Optional)
-            if vat_amount > 0:
-                
-                if not vat_detail_item:
-                   raise ValueError("VAT Input account is not configured")
-               
-                self.db.add(
-                    JournalDetail(
-                        journalHeaderID=header.journalHeaderID,
-                        detailItemCode = vat_detail_item,
-                        debitAmount=vat_amount,
-                        creditAmount=Decimal(0),
-                        narration="VAT Input",
-                        vatRate=vat_rate,
-                        fiscalYear=fiscal_year
-=======
-                    narration=row.narration
                 )
             )
 
             # VAT line (optional)
             if vat_amount > 0:
+
+                if not vat_detail_item:
+                    raise ValueError("VAT Input account is not configured")
+        
                 self.db.add(
                     JournalDetail(
                         journalHeaderID=header.journalHeaderID,
-                        detailItemCode=VAT_INPUT_ACCOUNT_CODE,
+                        detailItemCode=vat_detail_item,
                         debitAmount=vat_amount,
-                        creditAmount=Decimal(0),
-                        narration="VAT Input"
->>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
+                        creditAmount=Decimal("0.00"),
+                        narration="VAT Input",
+                        vatRateID=row.vatRateID,
+                        vatRate=vat_percent,      # ✅ NOW CORRECT
+                        fiscalYear=fiscal_year
                     )
                 )
 
@@ -248,88 +227,12 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                 JournalDetail(
                     journalHeaderID=header.journalHeaderID,
                     detailItemCode=row.creditItemCode,
-                    debitAmount=Decimal(0),
+                    debitAmount=Decimal("0.00"),
                     creditAmount=total_amount,
-<<<<<<< HEAD
                     narration=row.narration,
                     fiscalYear=fiscal_year
-=======
-                    narration=row.narration
->>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d
                 )
             )
 
         await self.db.commit()
-<<<<<<< HEAD
         return header
-
-    
-    # async def create_general_journal_entry(self, request):
-
-    #     # 1. Open period
-    #     period = await self._get_open_period()
-    #     if not period:
-    #         raise ValueError("No open accounting period found")
-
-    #     # 2. Journal Header
-    #     header = JournalHeader(
-    #         journalDate=request.journalDate,
-    #         journalType=request.journalType,
-    #         referenceNo=request.referenceNo,
-    #         description=request.description,
-    #         periodID=period.periodID
-    #     )
-
-    #     self.db.add(header)
-    #     await self.db.flush()
-
-    #     # 3. Journal Details
-    #     for row in request.details:
-    #         base_amount = Decimal(row.amount)
-    #         vat_rate = Decimal(row.vatRate or 0)
-    #         vat_amount = (base_amount * vat_rate / 100).quantize(Decimal("0.01"))
-    #         total_amount = base_amount + vat_amount
-
-    #         # Expense / Debit
-    #         self.db.add(
-    #             JournalDetail(
-    #                 journalHeaderID=header.journalHeaderID,
-    #                 detailItemCode=row.debitItemCode,
-    #                 debitAmount=base_amount,
-    #                 creditAmount=Decimal(0),
-    #                 narration=row.narration,
-    #                 fiscalYear=row.fiscalYear
-    #             )
-    #         )
-
-    #         # VAT line (optional)
-    #         if vat_amount > 0:
-    #             self.db.add(
-    #                 JournalDetail(
-    #                     journalHeaderID=header.journalHeaderID,
-    #                     detailItemCode=VAT_INPUT_ACCOUNT_CODE,
-    #                     debitAmount=vat_amount,
-    #                     creditAmount=Decimal(0),
-    #                     narration="VAT Input",
-    #                     vatRate=row.vatRate,
-    #                     fiscalYear=row.fiscalYear
-    #                 )
-    #             )
-
-    #         # Credit (Cash / Bank / Payable)
-    #         self.db.add(
-    #             JournalDetail(
-    #                 journalHeaderID=header.journalHeaderID,
-    #                 detailItemCode=row.creditItemCode,
-    #                 debitAmount=Decimal(0),
-    #                 creditAmount=total_amount,
-    #                 narration=row.narration,
-    #                 fiscalYear=row.fiscalYear
-    #             )
-    #         )
-
-    #     await self.db.commit()
-    #     return header
-=======
-        return header
->>>>>>> 0f121b107816857e7182c1b406799352dfa9c23d

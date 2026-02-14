@@ -1,6 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends
 
 from src.depends.service_depends import get_login_service
 from src.services.interfaces.ilogin_service import ILoginService
