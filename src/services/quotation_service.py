@@ -50,3 +50,22 @@ class QuotationService(IQuotationService):
     async def get_next_quotation_no(self) -> str:
         return await self.repository.get_next_quotation_no()
     
+    async def get_quotation_table(self):
+        quotations = await self.repository.get_quotation_table()
+
+        return [
+            {
+                "quotationID": q.quotationID,
+                "quotationNo": q.quotationNo,
+                "quotationDate": q.quotationDate,
+                "totalAmount": q.totalAmount,
+                "customerID": q.customerID,
+                "status": q.status,
+                "customerName": q.customer.customerName if q.customer else None
+            }
+            for q in quotations
+        ]
+    
+    async def get_quotations(self, filter, search):
+        return await self.repository.get_quotations(filter, search)
+    

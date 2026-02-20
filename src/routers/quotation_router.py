@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-
+from typing import List
+from typing import Optional
+from common.enum.commenum import QuotationFilter
 from src.services.interfaces.iquotation_service import IQuotationService
 from src.depends.service_depends import get_quotation_service
 from src.schemas.quotation_schema import (
@@ -10,13 +12,25 @@ from src.schemas.quotation_schema import (
 router = APIRouter(prefix="/api/quotations",tags=["Quotations"]
 )
 
-
-@router.post("/createQuotation", response_model=QuotationResponse)
-async def create_quotation(
-    request: QuotationCreateRequest,
+@router.get("/getQuotationFilters")
+async def get_quotations(
+    filter: QuotationFilter = QuotationFilter.ALL,
+    search: Optional[str] = None,
     service: IQuotationService = Depends(get_quotation_service)
 ):
-    return await service.create_quotation(request)
+    return await service.get_quotations(filter, search)
+
+@router.get("/", response_model=list[QuotationResponse])
+async def list_quotations(
+    service: IQuotationService = Depends(get_quotation_service)
+):
+    return await service.list_quotations()
+
+@router.get("/loadQuotationTable")
+async def get_quotation_table(
+    service: IQuotationService = Depends(get_quotation_service)
+):
+    return await service.get_quotation_table()
 
 @router.get("/getNextQuotationNo")
 async def get_next_quotation_no(
@@ -26,6 +40,12 @@ async def get_next_quotation_no(
         "quotationNo": await service.get_next_quotation_no()
     }
 
+@router.post("/createQuotation", response_model=QuotationResponse)
+async def create_quotation(
+    request: QuotationCreateRequest,
+    service: IQuotationService = Depends(get_quotation_service)
+):
+    return await service.create_quotation(request)
 
 @router.get("/{quotation_id}", response_model=QuotationResponse)
 async def get_quotation(
@@ -38,10 +58,9 @@ async def get_quotation(
     return quotation
 
 
-@router.get("/", response_model=list[QuotationResponse])
-async def list_quotations(
-    service: IQuotationService = Depends(get_quotation_service)
-):
-    return await service.list_quotations()
+
+
+
+
 
 

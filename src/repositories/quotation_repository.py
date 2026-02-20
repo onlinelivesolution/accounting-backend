@@ -1,7 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
+from typing import List, Optional
 from sqlalchemy.orm import selectinload
 from src.models.quotation import Quotation
+from common.enum.commenum import QuotationFilter
+from sqlalchemy import select, extract
+from datetime import date
 from src.repositories.interfaces.iquotation_repository import IQuotationRepository
 
 
@@ -48,4 +52,48 @@ class QuotationRepository(IQuotationRepository):
 
         number = int(last_no.replace("QTO", "")) + 1
         return f"QTO{number:07d}"
+    
+    async def get_quotation_table(self):
+        stmt = (
+            select(Quotation)
+            .options(selectinload(Quotation.customer))
+        )
+        result = await self.db.execute(stmt)
+        return result.scalars().all()
+    
+    async def get_quotations(self, filter: QuotationFilter, search: Optional[str]
+    ):
+        today = date.today()
+        stmt = select(Quotation)
+
+        # 🔎 SEARCH BY QUOTATION NO
+        if search:
+            stmt = stmt.where(
+                Quotation.quotationNo.ilike(f"%{search}%")
+            )
+
+        # 📌 FILTERS
+        if filter == QuotationFilter.TODAY:
+            stmt = stmt.where(Quotation.quotationDate == today)
+
+        elif filter == QuotationFilter.THIS_MONTH:
+            stmt = stmt.where(
+                extract("month", Quotation.quotationDate) == today.month,
+                extract("year", Quotation.quotationDate) == today.year
+            )
+
+        elif filter == QuotationFilter.EXPIRING_TODAY:
+            stmt = stmt.where(Quotation.expireDate == today)
+
+        elif filter == QuotationFilter.EXPIRED:
+            stmt = stmt.where(Quotation.expireDate < today)
+
+        elif filter == QuotationFilter.PENDING:
+            stmt = stmt.where(Quotation.status == "Pending")
+
+        elif filter == QuotationFilter.INVOICED:
+            stmt = stmt.where(Quotation.status == "Invoiced")
+
+        result = await self.db.execute(stmt)
+        return result.scalars().all()
 

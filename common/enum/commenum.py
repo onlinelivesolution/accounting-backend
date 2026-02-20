@@ -1,5 +1,14 @@
 from enum import Enum
 
+class QuotationFilter(str, Enum):
+    ALL = "ALL"
+    TODAY = "TODAY"
+    THIS_MONTH = "THIS_MONTH"
+    EXPIRING_TODAY = "EXPIRING_TODAY"
+    EXPIRED = "EXPIRED"
+    PENDING = "PENDING"
+    INVOICED = "INVOICED"
+    
 class LoadType(str, Enum):
     BANK = "BANK"
     CASH = "CASH"

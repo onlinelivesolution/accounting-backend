@@ -6,8 +6,30 @@ from src.services.interfaces.iaccountreport__service import IAccountReportServic
 from src.depends.service_depends import get_account_report_service
 from src.schemas.accountreport_schema import AccountReportRead
 
-router = APIRouter(prefix="/accountreports", tags=["AccountReports"]
-)
+router = APIRouter(prefix="/accountreports", tags=["AccountReports"])
+
+@router.get("/balance-sheet")
+async def balance_sheet(
+    as_of_date: date,
+    service = Depends(get_account_report_service)
+):
+    return await service.get_balance_sheet(as_of_date)
+
+
+
+@router.get("/trial-balance")
+async def trial_balance(
+    as_of_date: date,
+    service = Depends(get_account_report_service)
+):
+    return await service.get_trial_balance(as_of_date)
+
+@router.get("/profit-loss")
+async def profit_loss(
+    as_of_date: date,
+    service = Depends(get_account_report_service)
+):
+    return await service.get_profit_loss(as_of_date)
 
 @router.get("")
 async def ledger_report(
@@ -21,16 +43,3 @@ async def ledger_report(
         start_date=startDate,
         end_date=endDate
     )
-
-# @router.get("/", response_model=List[AccountReportRead])
-# async def ledger_report(
-#     detailItemCode: Optional[str] = None,
-#     start_date: Optional[date] = None,
-#     end_date: Optional[date] = None,
-#     service: IAccountReportService = Depends(get_account_report_service)
-# ):
-#     return await service.get_ledger(
-#         detailItemCode=detailItemCode,
-#         start_date=start_date,
-#         end_date=end_date
-#     )

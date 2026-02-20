@@ -11,3 +11,5 @@ class Customer(Base):
     creditLimit          = Column(Numeric(18, 2))
     vatReference         = Column(String(50), nullable=False) 
     isActive             = Column(Boolean, default=True)
+
+    quotations = relationship("Quotation", back_populates="customer")

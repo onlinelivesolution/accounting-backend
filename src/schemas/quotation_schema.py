@@ -58,3 +58,15 @@ class QuotationResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class QuotationTableResponse(BaseModel):
+    quotationID: int
+    quotationNo: str
+    quotationDate: date
+    totalAmount: float
+    customerName: str
+    customerID: int
+    status: str
+
+    class Config:
+        from_attributes = True   # REQUIRED for SQLAlchemy

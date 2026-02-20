@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List, Optional
 from src.models.quotation import Quotation
+from common.enum.commenum import QuotationFilter
 
 
 class IQuotationRepository(ABC):
@@ -19,4 +21,12 @@ class IQuotationRepository(ABC):
 
     @abstractmethod
     async def get_next_quotation_no(self) -> str:
+        pass
+
+    @abstractmethod
+    def get_quotation_table(self) -> list[Quotation]:
+        pass
+
+    @abstractmethod
+    async def get_quotations(self, filter: QuotationFilter, search: Optional[str]) -> List[Quotation]:
         pass
