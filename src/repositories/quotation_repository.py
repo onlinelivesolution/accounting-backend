@@ -3,6 +3,7 @@ from sqlalchemy import select, func, desc
 from typing import List, Optional
 from sqlalchemy.orm import selectinload
 from src.models.quotation import Quotation
+from src.models.customers import Customer
 from common.enum.commenum import QuotationFilter
 from sqlalchemy import select, extract
 from datetime import date
@@ -61,39 +62,51 @@ class QuotationRepository(IQuotationRepository):
         result = await self.db.execute(stmt)
         return result.scalars().all()
     
-    async def get_quotations(self, filter: QuotationFilter, search: Optional[str]
-    ):
+    async def get_quotation_filters(self, filter_type: str):
         today = date.today()
-        stmt = select(Quotation)
 
-        # 🔎 SEARCH BY QUOTATION NO
-        if search:
-            stmt = stmt.where(
-                Quotation.quotationNo.ilike(f"%{search}%")
-            )
+        # ✅ Base query with async-safe relationship loading
+        stmt = (
+            select(Quotation)
+            .options(selectinload(Quotation.customer))  # 🔥 IMPORTANT
+        )
 
-        # 📌 FILTERS
-        if filter == QuotationFilter.TODAY:
+        # ✅ Filters
+        if filter_type == "TODAY":
             stmt = stmt.where(Quotation.quotationDate == today)
 
-        elif filter == QuotationFilter.THIS_MONTH:
+        elif filter_type == "THIS_MONTH":
             stmt = stmt.where(
-                extract("month", Quotation.quotationDate) == today.month,
-                extract("year", Quotation.quotationDate) == today.year
+                func.month(Quotation.quotationDate) == today.month,
+                func.year(Quotation.quotationDate) == today.year
             )
 
-        elif filter == QuotationFilter.EXPIRING_TODAY:
+        elif filter_type == "EXPIRING_TODAY":
             stmt = stmt.where(Quotation.expireDate == today)
 
-        elif filter == QuotationFilter.EXPIRED:
+        elif filter_type == "EXPIRED":
             stmt = stmt.where(Quotation.expireDate < today)
 
-        elif filter == QuotationFilter.PENDING:
-            stmt = stmt.where(Quotation.status == "Pending")
+        elif filter_type == "PENDING":
+            stmt = stmt.where(Quotation.status == "PENDING")
 
-        elif filter == QuotationFilter.INVOICED:
-            stmt = stmt.where(Quotation.status == "Invoiced")
+        elif filter_type == "INVOICED":
+            stmt = stmt.where(Quotation.status == "INVOICED")
 
+        # ✅ Execute query
         result = await self.db.execute(stmt)
-        return result.scalars().all()
+        quotations = result.scalars().all()
+
+        # ✅ Safe mapping (NO lazy loading)
+        return [
+            {
+                "quotationID": q.quotationID,
+                "quotationNo": q.quotationNo,
+                "quotationDate": q.quotationDate,
+                "totalAmount": q.totalAmount,
+                "status": q.status,
+                "customerName": q.customer.customerName if q.customer else None
+            }
+            for q in quotations
+        ]
 

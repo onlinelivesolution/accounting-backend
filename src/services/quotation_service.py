@@ -66,6 +66,6 @@ class QuotationService(IQuotationService):
             for q in quotations
         ]
     
-    async def get_quotations(self, filter, search):
-        return await self.repository.get_quotations(filter, search)
+    async def get_quotation_filters(self, filter_type: str):
+        return await self.repository.get_quotation_filters(filter_type)
     

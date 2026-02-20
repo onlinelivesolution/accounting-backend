@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from typing import Optional
+from fastapi import APIRouter, Depends, Query
 from common.enum.commenum import QuotationFilter
 from src.services.interfaces.iquotation_service import IQuotationService
 from src.depends.service_depends import get_quotation_service
@@ -9,16 +10,15 @@ from src.schemas.quotation_schema import (
     QuotationResponse
 )
 
-router = APIRouter(prefix="/api/quotations",tags=["Quotations"]
-)
+router = APIRouter(prefix="/api/quotations",tags=["Quotations"])
 
 @router.get("/getQuotationFilters")
-async def get_quotations(
-    filter: QuotationFilter = QuotationFilter.ALL,
-    search: Optional[str] = None,
+async def get_quotation_filters(
+    filterType: str = "ALL",
     service: IQuotationService = Depends(get_quotation_service)
 ):
-    return await service.get_quotations(filter, search)
+    return await service.get_quotation_filters(filterType)
+
 
 @router.get("/", response_model=list[QuotationResponse])
 async def list_quotations(

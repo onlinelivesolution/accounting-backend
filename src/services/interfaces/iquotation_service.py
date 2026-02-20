@@ -29,5 +29,5 @@ class IQuotationService(ABC):
         pass
 
     @abstractmethod
-    async def get_quotations(self, filter: QuotationFilter, search: Optional[str]) -> List[Quotation]:
+    async def get_quotation_filters(self, filter_type: str):
         pass
