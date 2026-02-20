@@ -12,13 +12,21 @@ from src.schemas.quotation_schema import (
 
 router = APIRouter(prefix="/api/quotations",tags=["Quotations"])
 
+
 @router.get("/getQuotationFilters")
-async def get_quotation_filters(
+async def get_quotations(
     filterType: str = "ALL",
+    quotationNo: str | None = None,
+    page: int = 1,
+    pageSize: int = 10,
     service: IQuotationService = Depends(get_quotation_service)
 ):
-    return await service.get_quotation_filters(filterType)
-
+    return await service.get_quotations(
+        filterType,
+        quotationNo,
+        page,
+        pageSize
+    )
 
 @router.get("/", response_model=list[QuotationResponse])
 async def list_quotations(

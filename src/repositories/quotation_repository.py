@@ -62,16 +62,23 @@ class QuotationRepository(IQuotationRepository):
         result = await self.db.execute(stmt)
         return result.scalars().all()
     
-    async def get_quotation_filters(self, filter_type: str):
-        today = date.today()
 
-        # ✅ Base query with async-safe relationship loading
+    
+    async def get_quotations(
+        self,
+        filter_type: str,
+        quotation_no: Optional[str],
+        page: int,
+        page_size: int
+    ):
         stmt = (
             select(Quotation)
-            .options(selectinload(Quotation.customer))  # 🔥 IMPORTANT
+            .options(selectinload(Quotation.customer))  # ✅ FIX
         )
 
-        # ✅ Filters
+        today = date.today()
+
+        # ---------- FILTER ----------
         if filter_type == "TODAY":
             stmt = stmt.where(Quotation.quotationDate == today)
 
@@ -93,20 +100,36 @@ class QuotationRepository(IQuotationRepository):
         elif filter_type == "INVOICED":
             stmt = stmt.where(Quotation.status == "INVOICED")
 
-        # ✅ Execute query
+        # ---------- SEARCH ----------
+        if quotation_no:
+            stmt = stmt.where(
+                Quotation.quotationNo.ilike(f"%{quotation_no}%")
+            )
+
+        # ---------- ORDER (MANDATORY FOR MSSQL) ----------
+        stmt = stmt.order_by(Quotation.quotationID.desc())
+
+        # ---------- COUNT ----------
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = (await self.db.execute(count_stmt)).scalar()
+
+        # ---------- PAGINATION ----------
+        stmt = stmt.offset((page - 1) * page_size).limit(page_size)
+
         result = await self.db.execute(stmt)
         quotations = result.scalars().all()
 
-        # ✅ Safe mapping (NO lazy loading)
-        return [
-            {
-                "quotationID": q.quotationID,
-                "quotationNo": q.quotationNo,
-                "quotationDate": q.quotationDate,
-                "totalAmount": q.totalAmount,
-                "status": q.status,
-                "customerName": q.customer.customerName if q.customer else None
-            }
-            for q in quotations
-        ]
-
+        return {
+            "items": [
+                {
+                    "quotationID": q.quotationID,
+                    "quotationNo": q.quotationNo,
+                    "quotationDate": q.quotationDate,
+                    "totalAmount": q.totalAmount,
+                    "status": q.status,
+                    "customerName": q.customer.customerName if q.customer else None
+                }
+                for q in quotations
+            ],
+            "total": total
+        }
