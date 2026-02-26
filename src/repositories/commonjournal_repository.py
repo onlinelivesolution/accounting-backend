@@ -1,6 +1,7 @@
 from common.generic.generic_repository import GenericRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+import re
 from decimal import Decimal
 from datetime import datetime
 from src.models.controlitem import ControlItem
@@ -156,12 +157,21 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
             select(VATRates.ratePercent)
             .where(VATRates.vATRateID == vat_rate_id)
         )
+
         rate_percent = result.scalar()
 
         if rate_percent is None:
             raise ValueError("Invalid VAT Rate ID")
 
-        return Decimal(rate_percent)
+        print("RAW rate_percent from DB:", repr(rate_percent), type(rate_percent))
+
+        # ✅ REMOVE ALL NON-NUMERIC CHARACTERS (except dot)
+        cleaned = re.sub(r"[^\d.]", "", str(rate_percent))
+
+        if not cleaned:
+            raise ValueError(f"Invalid VAT rate format in DB: {rate_percent}")
+
+        return Decimal(cleaned)
 
     async def create_general_journal_entry(self, request):
 
@@ -229,7 +239,6 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                         debitAmount=vat_amount,
                         creditAmount=Decimal("0.00"),
                         narration="VAT Input",
-                        vATRateID=row.vATRateID,
                         ratePercent=rate_percent,
                         fiscalYear=fiscal_year
                     )

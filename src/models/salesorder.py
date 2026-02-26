@@ -25,5 +25,5 @@ class SalesOrder(Base):
     approvedBy         = Column(String(50), nullable=True)
     approvedDate       = Column(DateTime, nullable=True) 
 
-    items = relationship("SalesOrderDetail", back_populates="salesorder", cascade="all, delete-orphan")
+    items = relationship("SalesOrderDetail", back_populates="sales_order", lazy="selectin")
     customer = relationship("Customer", back_populates="salesorders")

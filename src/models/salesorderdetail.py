@@ -13,6 +13,6 @@ class SalesOrderDetail(Base):
     unitPrice          = Column(Numeric(18, 2), nullable=True)
     discountAmount          = Column(Numeric(18, 2), nullable=True)
     lineTotal          = Column(Numeric(18, 2), nullable=False)
+    
 
-
-    salesorder = relationship("SalesOrder", back_populates="items")
+    sales_order = relationship("SalesOrder", back_populates="items")

@@ -25,6 +25,6 @@ class JournalDetail(Base):
 
     debitAmount = Column(Numeric(18, 2), default=0)
     creditAmount = Column(Numeric(18, 2), default=0)
-    vatPercent = Column(Numeric(5, 2), default=0)
+    ratePercent = Column(Numeric(5, 2), default=0)
     narration = Column(String(255), nullable=True)
     fiscalYear = Column(String(20), nullable=True)

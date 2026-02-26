@@ -44,7 +44,7 @@ async def get_next_salesorder_no(
     service: ISalesOrderService = Depends(get_sales_order_service)
 ):
     return {
-        "quotationNo": await service.get_next_salesorder_no()
+        "salesOrderNo": await service.get_next_salesorder_no()
     }
 
 @router.post("/createSalesOrder", response_model=SalesOrderResponse)
