@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
 from src.models.quotation import Quotation
-from common.enum.commenum import QuotationFilter
 
 
 class IQuotationRepository(ABC):

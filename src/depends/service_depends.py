@@ -174,6 +174,14 @@ def get_period_service(repository: IPeriodRepository = Depends(get_period_reposi
     return PeriodService(repository)
 
 
+from src.depends.repository_depends import get_sales_order_repository
+from src.repositories.interfaces.isalesorder_repository import ISalesOrderRepository
+from src.services.interfaces.isalesorder_service import ISalesOrderService
+from src.services.salesorder_service import SalesOrderService
+
+def get_sales_order_service(repository: ISalesOrderRepository = Depends(get_sales_order_repository))->ISalesOrderService:
+    return SalesOrderService(repository)
+
 from src.depends.repository_depends import get_quotation_repository
 from src.repositories.interfaces.iquotation_repository import IQuotationRepository
 from src.services.interfaces.iquotation_service import IQuotationService

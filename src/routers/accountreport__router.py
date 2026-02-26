@@ -6,26 +6,24 @@ from src.services.interfaces.iaccountreport__service import IAccountReportServic
 from src.depends.service_depends import get_account_report_service
 from src.schemas.accountreport_schema import AccountReportRead
 
-router = APIRouter(prefix="/accountreports", tags=["AccountReports"])
+router = APIRouter(prefix="/api/accountreports", tags=["AccountReports"])
 
 @router.get("/balance-sheet")
-async def balance_sheet(
+async def get_balance_sheet(
     as_of_date: date,
     service = Depends(get_account_report_service)
 ):
     return await service.get_balance_sheet(as_of_date)
 
-
-
 @router.get("/trial-balance")
-async def trial_balance(
+async def get_trial_balance(
     as_of_date: date,
     service = Depends(get_account_report_service)
 ):
     return await service.get_trial_balance(as_of_date)
 
 @router.get("/profit-loss")
-async def profit_loss(
+async def get_profit_loss(
     as_of_date: date,
     service = Depends(get_account_report_service)
 ):

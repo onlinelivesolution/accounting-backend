@@ -23,7 +23,7 @@ class CommonJournalService(ICommonJournalService):
             if row.debitItemCode == row.creditItemCode:
                 raise ValueError("Debit and Credit account cannot be same")
 
-            if row.vatRate and row.vatRate not in (5, 10, 15):
+            if row.ratePercent and row.ratePercent not in (5, 10, 15):
                 raise ValueError("Invalid VAT rate")
 
         return await self.repository.create_general_journal_entry(request)

@@ -6,6 +6,7 @@ from datetime import datetime
 from src.models.controlitem import ControlItem
 from src.models.vataccountmapping import VatAccountMapping
 from src.models.journal_model import Journal
+from src.models.vatrate_model import VATRates
 from src.models.journalheader_model import JournalHeader
 from src.models.journaldetail_model import JournalDetail
 from src.models.accountingperiod import AccountingPeriod
@@ -21,6 +22,8 @@ from src.repositories.interfaces.icommonjournal_repository import ICommonJournal
 from common.enum.commenum import DefaultAccount
 from src.repositories.interfaces.icommonjournal_repository import ICommonJournalRepository
 VAT_INPUT_ACCOUNT_CODE = "VAT_INPUT"
+from decimal import Decimal, ROUND_HALF_UP
+from datetime import datetime
 
 class CommonJournalRepository(GenericRepository[Journal], ICommonJournalRepository):
     def __init__(self, db: AsyncSession):
@@ -148,19 +151,27 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
         return f"{next_code:02d}"
     
+    async def get_vat_rate_by_id(self, vat_rate_id: int) -> Decimal:
+        result = await self.db.execute(
+            select(VATRates.ratePercent)
+            .where(VATRates.vATRateID == vat_rate_id)
+        )
+        rate_percent = result.scalar()
 
+        if rate_percent is None:
+            raise ValueError("Invalid VAT Rate ID")
+
+        return Decimal(rate_percent)
 
     async def create_general_journal_entry(self, request):
 
-        # 1. Open period
         period = await self._get_open_period()
         if not period:
             raise ValueError("No open accounting period found")
-        
+
         fiscal_year = period.fiscalYear
         company_code = period.companyCode
 
-        # 2. Journal Header
         header = JournalHeader(
             journalDate=request.journalDate,
             journalType=request.journalType,
@@ -176,22 +187,25 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
         vat_detail_item = await self.get_vat_detail_item("INPUT", company_code)
 
-        # 3. Journal Details
         for row in request.details:
 
-            base_amount = row.amount
-            vat_percent = row.vatPercent or Decimal("0")
-            vat_amount = row.vatAmount
-            total_amount = row.totalAmount
-
             base_amount = Decimal(row.amount)
-            vat_rate = Decimal(row.vatRate or 0)
-            vat_amount = (base_amount * vat_rate / Decimal(100)).quantize(
+            rate_percent = Decimal("0.00")
+
+            if row.vATRateID:
+                rate_percent = await self.get_vat_rate_by_id(row.vATRateID)
+
+            vat_amount = (base_amount * rate_percent / Decimal(100)).quantize(
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
+
             total_amount = base_amount + vat_amount
 
-            # Expense / Debit
+            print("VAT Rate ID:", row.vATRateID)
+            print("VAT %:", rate_percent)
+            print("VAT Amount:", vat_amount)
+
+            # Debit (Expense)
             self.db.add(
                 JournalDetail(
                     journalHeaderID=header.journalHeaderID,
@@ -203,12 +217,11 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                 )
             )
 
-            # VAT line (optional)
+            # VAT Debit Line
             if vat_amount > 0:
-
                 if not vat_detail_item:
                     raise ValueError("VAT Input account is not configured")
-        
+
                 self.db.add(
                     JournalDetail(
                         journalHeaderID=header.journalHeaderID,
@@ -216,13 +229,13 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                         debitAmount=vat_amount,
                         creditAmount=Decimal("0.00"),
                         narration="VAT Input",
-                        vatRateID=row.vatRateID,
-                        vatRate=vat_percent,      # ✅ NOW CORRECT
+                        vATRateID=row.vATRateID,
+                        ratePercent=rate_percent,
                         fiscalYear=fiscal_year
                     )
                 )
 
-            # Credit (Cash / Bank / Payable)
+            # Credit
             self.db.add(
                 JournalDetail(
                     journalHeaderID=header.journalHeaderID,
@@ -236,3 +249,5 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
         await self.db.commit()
         return header
+
+    

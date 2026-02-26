@@ -1,6 +1,7 @@
 # main.py
 from fastapi import FastAPI # or whatever your endpoint file 
 from src.routers import quotation_router
+from src.routers import salesorder_router
 from src.routers import commondropdown_router
 from src.routers import banktransaction_router
 from src.routers import accountreport__router
@@ -47,6 +48,7 @@ app.add_middleware(
 )
 
 app.include_router(quotation_router.router)
+app.include_router(salesorder_router.router)
 app.include_router(commondropdown_router.router)
 app.include_router(banktransaction_router.router)
 app.include_router(accountreport__router.router)

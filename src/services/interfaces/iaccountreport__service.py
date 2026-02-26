@@ -4,7 +4,6 @@ from src.schemas.accountreport_schema import AccountReportRead
 from datetime import date
 
 class IAccountReportService(ABC):
-
     @abstractmethod
     async def get_balance_sheet(self, as_of_date: date):
         pass

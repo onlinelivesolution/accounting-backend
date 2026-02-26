@@ -13,3 +13,4 @@ class Customer(Base):
     isActive             = Column(Boolean, default=True)
 
     quotations = relationship("Quotation", back_populates="customer")
+    salesorders = relationship("SalesOrder", back_populates="customer")

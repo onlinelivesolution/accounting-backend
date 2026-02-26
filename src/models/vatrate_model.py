@@ -2,8 +2,8 @@ from sqlalchemy import Column, Integer, String, Numeric, Boolean, DateTime, Date
 from sqlalchemy.orm import relationship
 from src.services.database import Base
 
-class VATRate(Base):
-    __tablename__ = "VATRate"
+class VATRates(Base):
+    __tablename__ = "VATRates"
 
     vATRateID      = Column(Integer, primary_key=True, index=True)
     vATRateName    = Column(String(50), nullable=False)

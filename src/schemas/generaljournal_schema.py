@@ -8,13 +8,9 @@ class JournalDetailRequest(BaseModel):
     debitItemCode: str
     creditItemCode: str
     amount: Decimal
-    vatRateID: int
-    vatPercent: Decimal
-    vatRate: Decimal
-    vatAmount: Decimal
-    totalAmount: Decimal
+    vATRateID: Optional[int] = None   # ✅ REQUIRED
+    ratePercent: Optional[Decimal] = None
     narration: Optional[str] = None
-
 
 class JournalCreateRequest(BaseModel):
     journalDate: date

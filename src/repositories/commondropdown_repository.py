@@ -6,7 +6,7 @@ from src.schemas.commondropdown_schema import DropdownItem
 from src.schemas.commondropdown_schema import LineItemDropdown
 from src.models.lineitem import LineItem
 from src.models.customers import Customer
-from src.models.vatrate_model import VATRate
+from src.models.vatrate_model import VATRates
 
 
 class CommonDropdownRepository(ICommonDropdownRepository):
@@ -18,14 +18,14 @@ class CommonDropdownRepository(ICommonDropdownRepository):
 
         stmt = (
             select(
-                VATRate.vATRateID.label("id"),
-                VATRate.ratePercent.label("name")
+                VATRates.vATRateID.label("id"),
+                VATRates.ratePercent.label("name")
             )
             .where(
-                VATRate.isActive == True,
-                VATRate.companyCode == company_code
+                VATRates.isActive == True,
+                VATRates.companyCode == company_code
             )
-            .order_by(VATRate.vATRateName)
+            .order_by(VATRates.vATRateName)
         )
 
         result = await self.db.execute(stmt)
