@@ -133,3 +133,29 @@ class QuotationRepository(IQuotationRepository):
             ],
             "total": total
         }
+        
+    async def get_quotation_dropdown(self):
+        stmt = (
+            select(
+                Quotation.quotationID,
+                Quotation.quotationNo
+            )
+            .where(Quotation.status == "Draft")   # important
+            .order_by(Quotation.quotationNo)
+        )
+
+        result = await self.db.execute(stmt)
+        return result.all()
+    
+    async def get_quotation_for_sales_order(self, quotationID: int):
+        stmt = (
+            select(Quotation)
+            .options(selectinload(Quotation.items))  # ✅ eager load
+            .where(
+                Quotation.quotationID == quotationID,
+                Quotation.status == "Draft"
+            )
+        )
+
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()

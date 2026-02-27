@@ -21,3 +21,9 @@ class CustomerDropdown(BaseModel):
 
     class Config:
         from_attributes = True
+
+class QuotationDropdown(BaseModel):
+    quotationID: int
+    quotationNo: str
+
+    model_config = {"from_attributes": True}

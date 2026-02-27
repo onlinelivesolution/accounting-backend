@@ -31,3 +31,11 @@ class IQuotationService(ABC):
     @abstractmethod
     async def get_quotations(self, filter_type: str):
         pass
+    
+    @abstractmethod
+    async def get_quotation_dropdown(self):
+        pass
+    
+    @abstractmethod
+    async def get_quotation_for_sales_order(self, quotationID: int):
+        pass

@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from typing import Optional
 from fastapi import APIRouter, Depends, Query
-from common.enum.commenum import QuotationFilter
+from src.schemas.commondropdown_schema import QuotationDropdown
+from src.schemas.quotationtosalesorder_schema import QuotationToSalesOrderResponse
 from src.services.interfaces.iquotation_service import IQuotationService
 from src.depends.service_depends import get_quotation_service
 from src.schemas.quotation_schema import (
@@ -55,6 +56,23 @@ async def create_quotation(
 ):
     return await service.create_quotation(request)
 
+@router.get("/quotationDropdown",
+    response_model=List[QuotationDropdown]
+)
+async def get_quotation_dropdown(
+    service: IQuotationService = Depends(get_quotation_service)
+):
+    return await service.get_quotation_dropdown()
+
+@router.get("/{quotationID}/to-sales-order",
+    response_model=QuotationToSalesOrderResponse
+)
+async def get_quotation_to_sales_order(
+    quotationID: int,
+    service: IQuotationService = Depends(get_quotation_service)
+):
+    return await service.get_quotation_for_sales_order(quotationID)
+
 @router.get("/{quotation_id}", response_model=QuotationResponse)
 async def get_quotation(
     quotation_id: int,
@@ -64,6 +82,8 @@ async def get_quotation(
     if not quotation:
         raise HTTPException(status_code=404, detail="Quotation not found")
     return quotation
+
+
 
 
 

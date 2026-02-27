@@ -4,6 +4,7 @@ from src.models.quotation import Quotation
 from src.models.quotationdetail import QuotationDetail
 from src.schemas.quotation_schema import QuotationCreateRequest
 from datetime import datetime
+from fastapi import HTTPException
 
 
 class QuotationService(IQuotationService):
@@ -80,3 +81,33 @@ class QuotationService(IQuotationService):
             page,
             page_size
         )
+        
+    async def get_quotation_dropdown(self):
+        return await self.repository.get_quotation_dropdown()
+    
+    async def get_quotation_for_sales_order(self, quotationID: int):
+        quotation = await self.repository.get_quotation_for_sales_order(quotationID)
+
+        if not quotation:
+            raise HTTPException(status_code=404, detail="Quotation not found")
+
+        # 🔹 Map quotation → sales order format
+        return {
+            "quotationID": quotation.quotationID,
+            "customerID": quotation.customerID,
+            "subtotalAmount": float(quotation.subtotalAmount),
+            "discountAmount": float(quotation.discountAmount),
+            "vATAmount": float(quotation.vATAmount),
+            "totalAmount": float(quotation.totalAmount),
+            "items": [
+                {
+                    "itemID": d.itemID,
+                    "itemDescription": d.itemDescription,
+                    "quantity": float(d.quantity),
+                    "unitPrice": float(d.unitPrice),
+                    "discountAmount": float(d.discountAmount),
+                    "lineTotal": float(d.lineTotal)
+                }
+                for d in quotation.items
+            ]
+        }
