@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from src.schemas.salesorder_schema import SalesOrderCreateRequest
+from src.schemas.salesorder_schema import SalesOrderCreateRequest, SalesOrderUpdateRequest
 from src.models.salesorder import SalesOrder
 from typing import List, Optional
 from common.enum.commenum import QuotationFilter
@@ -29,4 +29,8 @@ class ISalesOrderService(ABC):
     
     @abstractmethod
     async def get_filter_sales_order(self, filter_type: str):
+        pass
+
+    @abstractmethod
+    async def update_sales_order(self, salesorder_id: int, request: SalesOrderUpdateRequest):
         pass

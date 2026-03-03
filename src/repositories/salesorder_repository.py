@@ -127,3 +127,14 @@ class SalesOrderRepository(GenericRepository[SalesOrder], ISalesOrderRepository)
             ],
             "total": total
         }
+    
+    async def update_sales_order(self, entity: SalesOrder) -> SalesOrder:
+        """
+        Updates only the SalesOrder header.
+        Commit should be controlled by the service layer.
+        """
+
+        self.db.add(entity)      # attach entity to session
+        await self.db.flush()    # push changes (no commit)
+
+        return entity

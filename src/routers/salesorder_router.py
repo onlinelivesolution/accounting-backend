@@ -6,7 +6,8 @@ from src.services.interfaces.isalesorder_service import ISalesOrderService
 from src.depends.service_depends import get_sales_order_service
 from src.schemas.salesorder_schema import (
     SalesOrderCreateRequest,
-    SalesOrderResponse
+    SalesOrderResponse,
+    SalesOrderUpdateRequest
 )
 
 router = APIRouter(prefix="/api/salesorders",tags=["SalesOrders"])
@@ -53,6 +54,19 @@ async def create_sales_order(
     service: ISalesOrderService = Depends(get_sales_order_service)
 ):
     return await service.create_sales_order(request)
+
+@router.put("/updateSalesOrder/{salesorder_id}")
+async def update_sales_order(
+    salesorder_id: int,
+    request: SalesOrderUpdateRequest,
+    service: ISalesOrderService = Depends(get_sales_order_service)
+):
+    result = await service.update_sales_order(salesorder_id, request)
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Sales Order not found")
+
+    return {"message": "Sales Order updated successfully"}
 
 @router.get("/{salesorder_id}", response_model=SalesOrderResponse)
 async def get_sales_order(

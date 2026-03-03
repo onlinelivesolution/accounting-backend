@@ -26,3 +26,7 @@ class ISalesOrderRepository(ABC):
     @abstractmethod
     async def get_filter_sales_order(self, filter_type: str):
         pass
+
+    @abstractmethod
+    async def update_sales_order(self, entity: SalesOrder) -> SalesOrder:
+        pass

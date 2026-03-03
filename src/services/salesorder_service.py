@@ -15,6 +15,7 @@ class SalesOrderService(ISalesOrderService):
         salesorder = SalesOrder(
             salesOrderNo=request.salesOrderNo,
             salesOrderDate=request.salesOrderDate,
+            expireDate=request.expireDate,
             customerID=request.customerID,
             exclusiveAmount=request.exclusiveAmount,
             discountAmount=request.discountAmount,
@@ -34,7 +35,9 @@ class SalesOrderService(ISalesOrderService):
                     itemDescription=item.itemDescription,
                     quantity=item.quantity,
                     unitPrice=item.unitPrice,
+                    exclusiveAmount=item.exclusiveAmount,
                     discountAmount=item.discountAmount,
+                    vatAmount=item.vatAmount,
                     lineTotal=item.lineTotal
                 )
             )
@@ -80,3 +83,56 @@ class SalesOrderService(ISalesOrderService):
             page,
             page_size
         )
+    
+    async def update_sales_order(self, salesorder_id: int, request):
+        """
+        Business logic:
+        1. Check if sales order exists
+        2. Update sales order header
+        3. Remove old detail rows
+        4. Insert new detail rows
+        """
+
+        # 🔹 1. Get existing order
+        sales_order = await self.repository.get_by_id(salesorder_id)
+        if not sales_order:
+            return None
+
+        # 🔹 2. Update header fields
+        sales_order.salesOrderDate = request.salesOrderDate
+        sales_order.expireDate = request.expireDate
+        sales_order.customerID = request.customerID
+        sales_order.exclusiveAmount = request.exclusiveAmount
+        sales_order.discountAmount = request.discountAmount
+        sales_order.vatAmount = request.vatAmount
+        sales_order.totalAmount = request.totalAmount
+
+        # 🔹 3. Delete existing details
+        await self.repository.db.execute(
+            SalesOrderDetail.__table__.delete().where(
+                SalesOrderDetail.salesOrderID == salesorder_id
+            )
+        )
+
+        # 🔹 4. Insert new details
+        for item in request.items:
+            detail = SalesOrderDetail(
+                salesOrderID=salesorder_id,
+                itemID=item.itemID,
+                itemDescription=item.itemDescription,
+                quantity=item.quantity,
+                unitPrice=item.unitPrice,
+                exclusiveAmount=item.exclusiveAmount,
+                discountAmount=item.discountAmount,
+                vatAmount=item.vatAmount,
+                lineTotal=item.lineTotal,
+            )
+            self.repository.db.add(detail)
+
+        # 🔹 5. Commit once
+        await self.repository.db.commit()
+
+        # 🔹 6. Refresh header
+        await self.repository.db.refresh(sales_order)
+
+        return sales_order
