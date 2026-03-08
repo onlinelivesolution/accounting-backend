@@ -98,3 +98,6 @@ class SalesOrderUpdateRequest(BaseModel):
 
     class Config:
         from_attributes = True
+
+class SalesOrderStatusUpdateRequest(BaseModel):
+    status: str

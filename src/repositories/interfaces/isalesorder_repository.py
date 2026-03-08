@@ -30,3 +30,7 @@ class ISalesOrderRepository(ABC):
     @abstractmethod
     async def update_sales_order(self, entity: SalesOrder) -> SalesOrder:
         pass
+
+    @abstractmethod
+    async def update_sales_order_status(self, entity: SalesOrder) -> SalesOrder:
+        pass

@@ -34,3 +34,7 @@ class ISalesOrderService(ABC):
     @abstractmethod
     async def update_sales_order(self, salesorder_id: int, request: SalesOrderUpdateRequest):
         pass
+
+    @abstractmethod
+    async def update_sales_order_status(self, salesorder_id: int, status: str):
+        pass

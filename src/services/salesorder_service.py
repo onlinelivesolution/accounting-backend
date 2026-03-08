@@ -136,3 +136,18 @@ class SalesOrderService(ISalesOrderService):
         await self.repository.db.refresh(sales_order)
 
         return sales_order
+    
+    async def update_sales_order_status(self, salesorder_id: int, status: str):
+
+        sales_order = await self.repository.get_by_id(salesorder_id)
+
+        if not sales_order:
+            return None
+
+        sales_order.status = status
+
+        await self.repository.update_sales_order_status(sales_order)
+
+        await self.repository.db.commit()
+
+        return sales_order

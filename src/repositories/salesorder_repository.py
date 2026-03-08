@@ -138,3 +138,14 @@ class SalesOrderRepository(GenericRepository[SalesOrder], ISalesOrderRepository)
         await self.db.flush()    # push changes (no commit)
 
         return entity
+    
+    async def update_sales_order_status(self, entity: SalesOrder) -> SalesOrder:
+        """
+        Updates only the SalesOrder status.
+        Commit should be controlled by the service layer.
+        """
+
+        self.db.add(entity)      # attach entity to session
+        await self.db.flush()    # push changes (no commit)
+
+        return entity
