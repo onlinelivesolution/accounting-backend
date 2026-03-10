@@ -86,6 +86,19 @@ async def update_sales_order_status(
 
     return {"message": "Sales Order status updated successfully"}
 
+@router.post("/{salesorder_id}/copy")
+async def copy_sales_order(
+    salesorder_id: int,
+    service: ISalesOrderService = Depends(get_sales_order_service)
+):
+    result = await service.copy_sales_order(salesorder_id)
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Sales Order not found")
+
+    return result
+
+
 @router.get("/{salesorder_id}", response_model=SalesOrderResponse)
 async def get_sales_order(
     salesorder_id: int,

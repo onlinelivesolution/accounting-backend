@@ -151,3 +151,53 @@ class SalesOrderService(ISalesOrderService):
         await self.repository.db.commit()
 
         return sales_order
+    
+    
+    async def copy_sales_order(self, salesorder_id: int):
+
+        # 1️⃣ Get existing order
+        order = await self.repository.get_sales_order_with_details(salesorder_id)
+
+        if not order:
+            return None
+
+        # 2️⃣ Create new order header
+        new_order = SalesOrder(
+            salesOrderNo=order.salesOrderNo,
+            salesOrderDate=datetime.utcnow(),
+            customerID=order.customerID,
+            exclusiveAmount=order.exclusiveAmount,
+            discountAmount=order.discountAmount,
+            vatAmount=order.vatAmount,
+            totalAmount=order.totalAmount,
+            status="Draft",
+            expireDate=order.expireDate,            
+            remarks=order.remarks, 
+            createdBy="admin",
+            createdDate=datetime.utcnow()
+                       
+        )
+
+        await self.repository.add_sales_order(new_order)
+
+        # 3️⃣ Copy details
+        for item in order.items:
+
+            new_detail = SalesOrderDetail(
+                salesOrderID=new_order.salesOrderID,
+                itemID=item.itemID,
+                itemDescription=item.itemDescription,
+                quantity=item.quantity,
+                unitPrice=item.unitPrice,
+                exclusiveAmount=item.exclusiveAmount,
+                discountAmount=item.discountAmount,
+                vatAmount=item.vatAmount,
+                lineTotal=item.lineTotal
+            )
+
+            await self.repository.add_sales_order_detail(new_detail)
+
+        # commit from service layer
+        await self.repository.db.commit()
+
+        return new_order

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from src.models.salesorder import SalesOrder
+from src.models.salesorderdetail import SalesOrderDetail
 
 class ISalesOrderRepository(ABC):
 
@@ -33,4 +34,16 @@ class ISalesOrderRepository(ABC):
 
     @abstractmethod
     async def update_sales_order_status(self, entity: SalesOrder) -> SalesOrder:
+        pass
+    
+    @abstractmethod
+    async def get_sales_order_with_details(self, salesorder_id: int) -> SalesOrder:
+        pass
+
+    @abstractmethod
+    async def add_sales_order(self, entity: SalesOrder) -> SalesOrder:
+        pass
+
+    @abstractmethod
+    async def add_sales_order_detail(self, entity: SalesOrderDetail) -> SalesOrderDetail:
         pass

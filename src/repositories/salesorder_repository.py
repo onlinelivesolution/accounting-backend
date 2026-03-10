@@ -4,6 +4,7 @@ from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from datetime import date
 from src.models.salesorder import SalesOrder
+from src.models.salesorderdetail import SalesOrderDetail
 from src.repositories.interfaces.isalesorder_repository import ISalesOrderRepository
 
 from common.generic.generic_repository import GenericRepository
@@ -147,5 +148,33 @@ class SalesOrderRepository(GenericRepository[SalesOrder], ISalesOrderRepository)
 
         self.db.add(entity)      # attach entity to session
         await self.db.flush()    # push changes (no commit)
+
+        return entity
+    
+    async def get_sales_order_with_details(self, salesorder_id: int):
+
+        query = (
+            select(SalesOrder)
+            .options(selectinload(SalesOrder.items))
+            .where(SalesOrder.salesOrderID == salesorder_id)
+        )
+
+        result = await self.db.execute(query)
+
+        return result.scalar_one_or_none()
+
+
+    async def add_sales_order(self, entity: SalesOrder) -> SalesOrder:
+
+        self.db.add(entity)
+        await self.db.flush()
+
+        return entity
+
+
+    async def add_sales_order_detail(self, entity: SalesOrderDetail):
+
+        self.db.add(entity)
+        await self.db.flush()
 
         return entity
