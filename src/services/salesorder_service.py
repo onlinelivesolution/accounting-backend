@@ -160,10 +160,11 @@ class SalesOrderService(ISalesOrderService):
 
         if not order:
             return None
-
+        sales_order_no = await self.repository.get_next_salesorder_no()
+        
         # 2️⃣ Create new order header
         new_order = SalesOrder(
-            salesOrderNo=order.salesOrderNo,
+            salesOrderNo=sales_order_no,
             salesOrderDate=datetime.utcnow(),
             customerID=order.customerID,
             exclusiveAmount=order.exclusiveAmount,
