@@ -190,6 +190,15 @@ from src.services.quotation_service import QuotationService
 def get_quotation_service(repository: IQuotationRepository = Depends(get_quotation_repository))->IQuotationService:
     return QuotationService(repository)
 
+
+from src.depends.repository_depends import get_accounting_rule_repository
+from src.repositories.interfaces.iaccountingrule_repository import IAccountingRuleRepository
+from src.services.interfaces.iaccountingrule_service import IAccountingRuleService
+from src.services.accountingrule_service import AccountingRuleService
+
+def get_accounting_rule_service(repository: IAccountingRuleRepository = Depends(get_accounting_rule_repository))->IAccountingRuleService:
+    return AccountingRuleService(repository)
+
 def get_balance_sheet_service(repository: IBalanceSheetRepository = Depends(get_balance_sheet_repository))->IBalanceSheetService:
     return BalanceSheetService(repository)
 

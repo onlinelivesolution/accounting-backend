@@ -14,3 +14,4 @@ class Customer(Base):
 
     quotations = relationship("Quotation", back_populates="customer")
     salesorders = relationship("SalesOrder", back_populates="customer")
+    # salesinvoices = relationship("SalesInvoice", back_populates="customer")
