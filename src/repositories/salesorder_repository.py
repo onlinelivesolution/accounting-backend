@@ -6,7 +6,6 @@ from datetime import date
 from src.models.salesorder import SalesOrder
 from src.models.salesorderdetail import SalesOrderDetail
 from src.repositories.interfaces.isalesorder_repository import ISalesOrderRepository
-
 from common.generic.generic_repository import GenericRepository
 
 class SalesOrderRepository(GenericRepository[SalesOrder], ISalesOrderRepository):

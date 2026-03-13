@@ -178,7 +178,6 @@ from src.depends.repository_depends import get_sales_order_repository
 from src.repositories.interfaces.isalesorder_repository import ISalesOrderRepository
 from src.services.interfaces.isalesorder_service import ISalesOrderService
 from src.services.salesorder_service import SalesOrderService
-
 def get_sales_order_service(repository: ISalesOrderRepository = Depends(get_sales_order_repository))->ISalesOrderService:
     return SalesOrderService(repository)
 
@@ -186,7 +185,6 @@ from src.depends.repository_depends import get_quotation_repository
 from src.repositories.interfaces.iquotation_repository import IQuotationRepository
 from src.services.interfaces.iquotation_service import IQuotationService
 from src.services.quotation_service import QuotationService
-
 def get_quotation_service(repository: IQuotationRepository = Depends(get_quotation_repository))->IQuotationService:
     return QuotationService(repository)
 
@@ -195,9 +193,15 @@ from src.depends.repository_depends import get_accounting_rule_repository
 from src.repositories.interfaces.iaccountingrule_repository import IAccountingRuleRepository
 from src.services.interfaces.iaccountingrule_service import IAccountingRuleService
 from src.services.accountingrule_service import AccountingRuleService
-
 def get_accounting_rule_service(repository: IAccountingRuleRepository = Depends(get_accounting_rule_repository))->IAccountingRuleService:
     return AccountingRuleService(repository)
+
+from src.depends.repository_depends import get_sales_invoice_repository
+from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
+from src.services.interfaces.isalesinvoice_service import ISalesInvoiceService
+from src.services.salesinvoice_service import SalesInvoiceService
+def get_sales_invoice_service(repository: ISalesInvoiceRepository = Depends(get_sales_invoice_repository))->ISalesInvoiceService:
+    return SalesInvoiceService(repository)
 
 def get_balance_sheet_service(repository: IBalanceSheetRepository = Depends(get_balance_sheet_repository))->IBalanceSheetService:
     return BalanceSheetService(repository)

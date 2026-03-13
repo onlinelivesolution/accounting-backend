@@ -84,6 +84,11 @@ from src.repositories.quotation_repository import QuotationRepository
 def get_quotation_repository(db: AsyncSession = Depends(get_db))->IQuotationRepository:
     return QuotationRepository(db)
 
+from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
+from src.repositories.salesinvoice_repository import SalesInvoiceRepository
+
+def get_sales_invoice_repository(db: AsyncSession = Depends(get_db))->ISalesInvoiceRepository:
+    return SalesInvoiceRepository(db)
 
 from src.repositories.interfaces.iaccountingrule_repository import IAccountingRuleRepository
 from src.repositories.accountingrule_repository import AccountingRuleRepository

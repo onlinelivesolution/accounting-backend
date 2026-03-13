@@ -10,7 +10,7 @@ class IAccountingRuleRepository(ABC):
         pass
 
     @abstractmethod
-    async def create_rule(self, rule: AccountingRule) -> AccountingRule:
+    async def create_accounting_rule(self, rule: AccountingRule) -> AccountingRule:
         pass
 
     @abstractmethod

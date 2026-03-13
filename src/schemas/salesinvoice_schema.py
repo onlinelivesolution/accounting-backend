@@ -10,14 +10,13 @@ class SalesInvoiceItemRequest(BaseModel):
     unitPrice: float = Field(..., ge=0)
     exclusiveAmount: float = Field(..., ge=0)
     discountAmount: float = Field(default=0, ge=0)
-    lineTotal: float = Field(..., ge=0)
+    totalAmount: float = Field(..., ge=0)
     vatAmount: float = Field(..., ge=0)
     model_config = {"from_attributes": True}
 
 class SalesInvoiceCreateRequest(BaseModel):
-    salesOrderNo: str
-    salesOrderDate: date
-    expireDate: date
+    salesInvoiceNo: str
+    salesInvoiceDate: date
     customerID: int
     exclusiveAmount: float = Field(..., ge=0)
     discountAmount: float = Field(default=0, ge=0)
@@ -30,7 +29,7 @@ class SalesInvoiceCreateRequest(BaseModel):
     model_config = {"from_attributes": True}
 
 class SalesInvoiceItemResponse(BaseModel):
-    salesOrderDetailID: int
+    salesInvoiceDetailID: int
     itemID: int
     itemDescription: Optional[str] = None
     quantity: float
@@ -38,15 +37,15 @@ class SalesInvoiceItemResponse(BaseModel):
     exclusiveAmount: float
     discountAmount: float
     vatAmount: float
-    lineTotal: float
+    totalAmount: float
 
     model_config = {"from_attributes": True}
 
 class SalesInvoiceResponse(BaseModel):
-    salesOrderID: int
-    quotationID:  Optional[int] = None
-    salesOrderNo: str
-    salesOrderDate: date
+    salesInvoiceID: int
+    salesOrderID:  Optional[int] = None
+    salesInvoiceNo: str
+    salesInvoiceDate: date
     customerID: int
     exclusiveAmount: float
     discountAmount: float
@@ -61,9 +60,9 @@ class SalesInvoiceResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 class SalesInvoiceTableResponse(BaseModel):
-    salesOrderID: int
-    salesOrderNo: str
-    salesOrderDate: date
+    salesInvoiceID: int
+    salesInvoiceNo: str
+    salesInvoiceDate: date
     totalAmount: float
     customerName: str
     customerID: int

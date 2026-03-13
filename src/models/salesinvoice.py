@@ -9,7 +9,7 @@ class SalesInvoice(Base):
     salesInvoiceID       = Column(Integer, primary_key=True, index=True) 
     salesOrderID        = Column(Integer, nullable=False)
     salesInvoiceNo       = Column(String(30), nullable=False)
-    customerID         = Column(Integer, ForeignKey("Customer.customerID")) 
+    customerID         = Column(Integer, ForeignKey("Customer.customerID"), nullable=False) 
     salesInvoiceDate     = Column(Date, nullable=False)  
     exclusiveAmount    = Column(Numeric(18, 2))
     discountAmount     = Column(Numeric(18, 2))
@@ -24,5 +24,5 @@ class SalesInvoice(Base):
     approvedBy         = Column(String(50), nullable=True)
     approvedDate       = Column(DateTime, nullable=True) 
 
-    # items = relationship("SalesInvoiceDetail", back_populates="sales_invoice", lazy="selectin")
-    # customer = relationship("Customer", back_populates="salesinvoices")
+    items = relationship("SalesInvoiceDetail", back_populates="sales_invoice", lazy="selectin")
+    customer = relationship("Customer", back_populates="salesinvoices")

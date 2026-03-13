@@ -6,16 +6,16 @@ from src.models.accountingruledetail import AccountingRuleDetail
 
 class AccountingRuleService(IAccountingRuleService):
 
-    def __init__(self, repo: IAccountingRuleRepository):
-        self.repo = repo
+    def __init__(self, repository: IAccountingRuleRepository):
+        self.repository = repository
 
 
     async def get_rule(self, ruleCode: str):
 
-        return await self.repo.get_rule(ruleCode)
+        return await self.repository.get_rule(ruleCode)
 
 
-    async def create_rule(self, request):
+    async def create_accounting_rule(self, request):
 
         rule = AccountingRule(
             ruleCode=request.ruleCode,
@@ -33,4 +33,4 @@ class AccountingRuleService(IAccountingRuleService):
 
             rule.details.append(detail)
 
-        return await self.repo.create_rule(rule)
+        return await self.repository.create_accounting_rule(rule)

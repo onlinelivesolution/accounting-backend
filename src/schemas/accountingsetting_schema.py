@@ -1,16 +1,14 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional
-from datetime import date, datetime
+from pydantic import BaseModel
+from typing import List
+
 
 class AccountingRuleDetailRequest(BaseModel):
-
     accountCode: str
     entryType: str
     amountSource: str
 
 
-class AccountingRuleRequest(BaseModel):
-
+class AccountingRuleCreateRequest(BaseModel):
     ruleCode: str
     moduleName: str
     description: str

@@ -22,7 +22,7 @@ class AccountingRuleRepository(IAccountingRuleRepository):
         return result.scalar_one_or_none()
 
 
-    async def create_rule(self, rule: AccountingRule):
+    async def create_accounting_rule(self, rule: AccountingRule):
 
         self.db.add(rule)
 

@@ -10,5 +10,5 @@ class IAccountingRuleService(ABC):
         pass
 
     @abstractmethod
-    async def create_rule(self, request):
+    async def create_accounting_rule(self, request):
         pass

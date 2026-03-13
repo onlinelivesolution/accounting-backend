@@ -17,4 +17,4 @@ class SalesInvoiceDetail(Base):
     totalAmount           = Column(Numeric(18, 2), nullable=False)
     
 
-    # sales_invoice = relationship("SalesInvoice", back_populates="items")
+    sales_invoice = relationship("SalesInvoice", back_populates="items")
