@@ -19,3 +19,27 @@ class ISalesInvoiceService(ABC):
     @abstractmethod
     async def get_next_salesinvoice_no(self) -> str:
         pass
+    
+    @abstractmethod
+    async def get_filter_sales_invoice(self, filter_type: str):
+        pass
+    
+    @abstractmethod
+    async def list_sales_invoice(self) -> list[SalesInvoice]:
+        pass
+    
+    @abstractmethod
+    async def load_sales_invoice_table(self) -> list[SalesInvoice]:
+        pass
+    
+    @abstractmethod
+    async def update_sales_invoice(self, salesinvoice_id: int, request: SalesInvoiceUpdateRequest):
+        pass
+    
+    @abstractmethod
+    async def update_sales_invoice_status(self, salesinvoice_id: int, status: str):
+        pass
+    
+    @abstractmethod
+    async def copy_sales_invoice(self, salesinvoice_id: int):
+        pass

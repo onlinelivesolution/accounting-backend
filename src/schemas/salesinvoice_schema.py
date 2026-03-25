@@ -15,6 +15,7 @@ class SalesInvoiceItemRequest(BaseModel):
     model_config = {"from_attributes": True}
 
 class SalesInvoiceCreateRequest(BaseModel):
+    salesOrderID: int
     salesInvoiceNo: str
     salesInvoiceDate: date
     customerID: int
