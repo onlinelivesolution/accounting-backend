@@ -7,10 +7,38 @@ from src.depends.service_depends import get_sales_invoice_service
 from src.schemas.salesinvoice_schema import (
     SalesInvoiceCreateRequest,
     SalesInvoiceResponse,
-    SalesInvoiceUpdateRequest
+    SalesInvoiceUpdateRequest,
+    SalesInvoiceStatusUpdateRequest
 )
 
 router = APIRouter(prefix="/api/salesinvoices",tags=["SalesInvoices"])
+
+@router.get("/getSalesInvoiceFilters")
+async def get_sales_invoice(
+    filterType: str = "ALL",
+    salesInvoiceNo: str | None = None,
+    page: int = 1,
+    pageSize: int = 10,
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+    return await service.get_filter_sales_invoice(
+        filterType,
+        salesInvoiceNo,
+        page,
+        pageSize
+    )
+
+@router.get("/", response_model=list[SalesInvoiceResponse])
+async def list_sales_invoice(
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+    return await service.list_sales_invoice()
+
+@router.get("/loadSalesInvoiceTable")
+async def load_sales_invoice_table(
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+    return await service.load_sales_invoice_table()
 
 @router.post("/createSalesInvoice", response_model=SalesInvoiceResponse)
 async def create_sales_invoice(
@@ -19,6 +47,19 @@ async def create_sales_invoice(
 ):
     return await service.create_sales_invoice(request)
 
+@router.put("/updateSalesInvoice/{salesinvoice_id}")
+async def update_sales_invoice(
+    salesinvoice_id: int,
+    request: SalesInvoiceUpdateRequest,
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+    result = await service.update_sales_invoice(salesinvoice_id, request)
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Sales Invoice not found")
+
+    return {"message": "Sales Invoice updated successfully"}
+
 @router.get("/getNextSalesInvoiceNo")
 async def get_next_salesinvoice_no(
     service: ISalesInvoiceService = Depends(get_sales_invoice_service)
@@ -26,3 +67,42 @@ async def get_next_salesinvoice_no(
     return {
         "salesInvoiceNo": await service.get_next_salesinvoice_no()
     }
+
+@router.put("/updateSalesInvoiceStatus/{salesinvoice_id}")
+async def update_sales_invoice_status(
+    salesinvoice_id: int,
+    request: SalesInvoiceStatusUpdateRequest,
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+
+    result = await service.update_sales_invoice_status(
+        salesinvoice_id,
+        request.status
+    )
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Sales Invoice not found")
+
+    return {"message": "Sales Invoice status updated successfully"}
+
+@router.post("/{salesinvoice_id}/copy")
+async def copy_sales_invoice(
+    salesinvoice_id: int,
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+    result = await service.copy_sales_invoice(salesinvoice_id)
+
+    if not result:
+        raise HTTPException(status_code=404, detail="Sales Invoice not found")
+
+    return result
+
+@router.get("/{salesinvoice_id}", response_model=SalesInvoiceResponse)
+async def get_sales_invoice(
+    salesinvoice_id: int,
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+    salesinvoice = await service.get_sales_invoice_by_id(salesinvoice_id)
+    if not salesinvoice:
+        raise HTTPException(status_code=404, detail="Sales Invoice not found")
+    return salesinvoice

@@ -19,3 +19,23 @@ class ISalesInvoiceRepository(ABC):
     @abstractmethod
     async def get_next_salesinvoice_no(self) -> list:
         pass
+    
+    @abstractmethod
+    def load_sales_invoice_table(self) -> list[SalesInvoice]:
+        pass
+    
+    @abstractmethod
+    async def get_filter_sales_invoice(self, filter_type: str):
+        pass
+    
+    @abstractmethod
+    async def update_sales_invoice_status(self, entity: SalesInvoice) -> SalesInvoice:
+        pass
+    
+    @abstractmethod
+    async def get_sales_invoice_with_details(self, salesinvoice_id: int) -> SalesInvoice:
+        pass
+    
+    @abstractmethod
+    async def add_sales_invoice_detail(self, entity: SalesInvoiceDetail) -> SalesInvoiceDetail:
+        pass
