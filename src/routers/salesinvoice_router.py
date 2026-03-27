@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from typing import Optional
 from fastapi import APIRouter, Depends, Query
+from src.schemas.commondropdown_schema import SalesOrderDropdown
+from src.schemas.salesordertosalesinvoice_schema import SalesOrderToSalesInvoiceResponse
 from src.services.interfaces.isalesinvoice_service import ISalesInvoiceService
 from src.depends.service_depends import get_sales_invoice_service
 from src.schemas.salesinvoice_schema import (
@@ -84,6 +86,23 @@ async def update_sales_invoice_status(
         raise HTTPException(status_code=404, detail="Sales Invoice not found")
 
     return {"message": "Sales Invoice status updated successfully"}
+
+@router.get("/salesOrderDropdown",
+    response_model=List[SalesOrderDropdown]
+)
+async def get_sales_order_dropdown(
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+    return await service.get_sales_order_dropdown()
+
+@router.get("/{salesOrderID}/to-sales-invoice",
+    response_model=SalesOrderToSalesInvoiceResponse
+)
+async def get_sales_order_to_sales_invoice(
+    salesOrderID: int,
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+    return await service.get_sales_order_for_sales_invoice(salesOrderID)
 
 @router.post("/{salesinvoice_id}/copy")
 async def copy_sales_invoice(

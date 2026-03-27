@@ -27,3 +27,9 @@ class QuotationDropdown(BaseModel):
     quotationNo: str
 
     model_config = {"from_attributes": True}
+
+class SalesOrderDropdown(BaseModel):
+    salesOrderID: int
+    salesOrderNo: str
+
+    model_config = {"from_attributes": True}

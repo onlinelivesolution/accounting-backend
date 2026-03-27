@@ -39,3 +39,11 @@ class ISalesInvoiceRepository(ABC):
     @abstractmethod
     async def add_sales_invoice_detail(self, entity: SalesInvoiceDetail) -> SalesInvoiceDetail:
         pass
+    
+    @abstractmethod
+    async def get_sales_order_dropdown(self):
+        pass
+    
+    @abstractmethod
+    async def get_sales_order_for_sales_invoice(self, salesOrderID: int):
+        pass

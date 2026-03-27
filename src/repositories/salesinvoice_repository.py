@@ -4,6 +4,7 @@ from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from datetime import date
 from src.models.salesinvoice import SalesInvoice
+from src.models.salesorder import SalesOrder
 from src.models.salesinvoicedetail import SalesInvoiceDetail
 from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
 from common.generic.generic_repository import GenericRepository
@@ -60,7 +61,7 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
             return "SIN0000001"
 
         number = int(last_no.replace("SIN", "")) + 1
-        return f"SOR{number:07d}"
+        return f"SIN{number:07d}"
     
     async def load_sales_invoice_table(self):
         stmt = (
@@ -150,3 +151,57 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
         await self.db.flush()    # push changes (no commit)
 
         return entity
+    
+    async def get_sales_invoice_with_details(self, salesinvoice_id: int):
+
+        query = (
+            select(SalesInvoice)
+            .options(selectinload(SalesInvoice.items))
+            .where(SalesInvoice.salesInvoiceID == salesinvoice_id)
+        )
+
+        result = await self.db.execute(query)
+
+        return result.scalar_one_or_none()
+
+
+    async def add_sales_invoice(self, entity: SalesInvoice) -> SalesInvoice:
+
+        self.db.add(entity)
+        await self.db.flush()
+
+        return entity
+
+
+    async def add_sales_invoice_detail(self, entity: SalesInvoiceDetail):
+
+        self.db.add(entity)
+        await self.db.flush()
+
+        return entity
+    
+    async def get_sales_order_dropdown(self):
+        stmt = (
+            select(
+                SalesOrder.salesOrderID,
+                SalesOrder.salesOrderNo
+            )
+            .where(SalesOrder.status == "Draft")   # important
+            .order_by(SalesOrder.salesOrderNo)
+        )
+
+        result = await self.db.execute(stmt)
+        return result.all()
+    
+    async def get_sales_order_for_sales_invoice(self, salesOrderID: int):
+        stmt = (
+            select(SalesOrder)
+            .options(selectinload(SalesOrder.items))  # ✅ eager load
+            .where(
+                SalesOrder.salesOrderID == salesOrderID,
+                SalesOrder.status == "Draft"
+            )
+        )
+
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()

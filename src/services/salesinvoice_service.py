@@ -3,6 +3,7 @@ from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRe
 from src.models.salesinvoice import SalesInvoice
 from src.models.salesinvoicedetail import SalesInvoiceDetail
 from src.schemas.salesinvoice_schema import SalesInvoiceCreateRequest
+from fastapi import HTTPException
 from datetime import datetime
 
 class SalesInvoiceService(ISalesInvoiceService):
@@ -201,3 +202,33 @@ class SalesInvoiceService(ISalesInvoiceService):
         await self.repository.db.commit()
 
         return new_invoice
+    
+    async def get_sales_order_dropdown(self):
+        return await self.repository.get_sales_order_dropdown()
+    
+    async def get_sales_order_for_sales_invoice(self, salesOrderID: int):
+        salesorder = await self.repository.get_sales_order_for_sales_invoice(salesOrderID)
+
+        if not salesorder:
+            raise HTTPException(status_code=404, detail="Sales Order not found")
+
+        # 🔹 Map quotation → sales order format
+        return {
+            "salesOrderID": salesorder.salesOrderID,
+            "customerID": salesorder.customerID,
+            "exclusiveAmount": float(salesorder.exclusiveAmount),
+            "discountAmount": float(salesorder.discountAmount),
+            "vatAmount": float(salesorder.vatAmount),
+            "totalAmount": float(salesorder.totalAmount),
+            "items": [
+                {
+                    "itemID": d.itemID,
+                    "itemDescription": d.itemDescription,
+                    "quantity": float(d.quantity),
+                    "unitPrice": float(d.unitPrice),
+                    "discountAmount": float(d.discountAmount),
+                    "lineTotal": float(d.lineTotal)
+                }
+                for d in salesorder.items
+            ]
+        }

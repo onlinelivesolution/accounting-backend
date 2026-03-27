@@ -43,3 +43,11 @@ class ISalesInvoiceService(ABC):
     @abstractmethod
     async def copy_sales_invoice(self, salesinvoice_id: int):
         pass
+    
+    @abstractmethod
+    async def get_sales_order_dropdown(self):
+        pass
+    
+    @abstractmethod
+    async def get_sales_order_for_sales_invoice(self, salesOrderID: int):
+        pass
