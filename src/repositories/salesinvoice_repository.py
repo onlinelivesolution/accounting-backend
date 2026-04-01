@@ -205,3 +205,25 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
 
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
+    
+    async def update(self, invoice: SalesInvoice):
+
+        if not invoice:
+            raise Exception("Invoice not found")
+
+        await self.db.commit()
+        await self.db.refresh(invoice)
+
+        return invoice
+    
+    async def approve_sales_invoice(self, invoice: SalesInvoice) -> SalesInvoice:
+
+        if not invoice:
+            raise Exception("Invoice not found")
+
+        invoice.status = "APPROVED"
+
+        await self.db.commit()
+        await self.db.refresh(invoice)
+
+        return invoice

@@ -23,6 +23,7 @@ class SalesInvoice(Base):
     updatedDate        = Column(DateTime, nullable=True) 
     approvedBy         = Column(String(50), nullable=True)
     approvedDate       = Column(DateTime, nullable=True) 
+    companyCode        = Column(String(2), nullable=True)
 
     items = relationship("SalesInvoiceDetail", back_populates="sales_invoice", lazy="selectin")
     customer = relationship("Customer", back_populates="salesinvoices")

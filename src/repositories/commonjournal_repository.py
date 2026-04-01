@@ -258,5 +258,35 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
         await self.db.commit()
         return header
+    
+    async def get_period_by_date(self, companyCode: str, date: datetime):
+
+        stmt = select(AccountingPeriod).where(
+            AccountingPeriod.periodStart <= date,
+            AccountingPeriod.periodEnd >= date,
+            AccountingPeriod.companyCode == companyCode
+        )
+
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+    
+    async def create_journal(self, header: JournalHeader, details: list[JournalDetail]):
+        self.db.add(header)
+        await self.db.flush()  # to get journalHeaderID
+        for line in details:
+            line.journalHeaderID = header.journalHeaderID
+        self.db.add_all(details)
+        await self.db.commit()
+        return header
+    
+    async def create_invoice_journal_entry(self, data: dict):
+
+        # assuming you already have model
+        journal = GeneralJournal(**data)
+
+        self.db.add(journal)
+        # ❗ DO NOT commit here (commit in service)
+
+        return journal
 
     

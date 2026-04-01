@@ -1,5 +1,6 @@
 from src.services.interfaces.isalesinvoice_service import ISalesInvoiceService
 from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
+from src.services.interfaces.icommonjournal_service import ICommonJournalService
 from src.models.salesinvoice import SalesInvoice
 from src.models.salesinvoicedetail import SalesInvoiceDetail
 from src.schemas.salesinvoice_schema import SalesInvoiceCreateRequest
@@ -8,8 +9,16 @@ from datetime import datetime
 
 class SalesInvoiceService(ISalesInvoiceService):
 
-    def __init__(self, repository: ISalesInvoiceRepository):
+    # def __init__(self, repository: ISalesInvoiceRepository):
+    #     self.repository = repository
+    
+    def __init__(
+        self,
+        repository: ISalesInvoiceRepository,
+        journal_service: ICommonJournalService   # ✅ ADD THIS
+    ):
         self.repository = repository
+        self.journal_service = journal_service
     
     async def create_sales_invoice(self, request: SalesInvoiceCreateRequest) -> SalesInvoice:
         salesinvoice = SalesInvoice(
@@ -232,3 +241,26 @@ class SalesInvoiceService(ISalesInvoiceService):
                 for d in salesorder.items
             ]
         }
+    
+    async def approve_sales_invoice(self, salesInvoiceID: int):
+
+        invoice = await self.repository.get_sales_invoice_by_id(salesInvoiceID)
+
+        if not invoice:
+            raise Exception("Invoice not found")
+
+        if invoice.status == "APPROVED":
+            raise Exception("Already approved")
+
+        # ✅ Journal Posting
+        await self.journal_service.post_sales_invoice_journal(invoice)
+
+        # ✅ Update status
+        invoice.status = "APPROVED"
+
+        await self.repository.update(invoice)
+
+        return {"message": "Approved successfully"}
+    
+    async def update(self, invoice: SalesInvoice) -> SalesInvoice:
+        return await self.repository.update(invoice)

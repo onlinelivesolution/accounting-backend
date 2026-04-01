@@ -51,3 +51,11 @@ class ISalesInvoiceService(ABC):
     @abstractmethod
     async def get_sales_order_for_sales_invoice(self, salesOrderID: int):
         pass
+    
+    @abstractmethod
+    async def update(self, invoice: SalesInvoice) -> SalesInvoice:
+        pass
+    
+    @abstractmethod
+    async def approve_sales_invoice(self, salesInvoiceID: int):
+        pass

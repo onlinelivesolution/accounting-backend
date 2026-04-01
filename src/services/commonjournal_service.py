@@ -2,15 +2,24 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List
 from fastapi import HTTPException
+from collections import defaultdict
 from common.enum.commenum import DefaultAccount
 from src.services.interfaces.icommonjournal_service import ICommonJournalService
 from src.repositories.interfaces.icommonjournal_repository import ICommonJournalRepository
-
+from src.repositories.interfaces.iaccountingrule_repository import IAccountingRuleRepository
+from collections import defaultdict
+from src.models.journalheader_model import JournalHeader
+from src.models.journaldetail_model import JournalDetail
 
 class CommonJournalService(ICommonJournalService):
 
-    def __init__(self, repository: ICommonJournalRepository):
+    def __init__(
+        self,
+        repository: ICommonJournalRepository,
+        rule_repository: IAccountingRuleRepository
+    ):
         self.repository = repository
+        self.rule_repository = rule_repository
     
     async def create_general_journal_entry(self, request):
         if not request.details:
@@ -208,3 +217,79 @@ class CommonJournalService(ICommonJournalService):
     
     async def create_opening_balance(self, data):
         raise NotImplementedError("Opening balance not implemented yet")
+    
+    async def post_journal(self, header, lines):
+        """
+        Inserts journal header and all detail lines into the database.
+        """
+        # Save the header first
+        self.repository.db.add(header)
+        await self.repository.db.flush()  # flush to get journalHeaderID
+
+        # Add details
+        for line in lines:
+            line.journalHeaderID = header.journalHeaderID
+            self.repository.db.add(line)
+
+        # Commit all
+        await self.repository.db.commit()
+        return header
+
+    async def post_sales_invoice_journal(self, invoice):
+        
+        period = await self.repository.get_period_by_date(
+        invoice.companyCode,
+        invoice.salesInvoiceDate
+        )
+
+        if not period:
+            raise Exception("No accounting period found for this date")
+
+        periodID = period.periodID
+        
+        rule = await self.rule_repository.get_rule("SALES_INVOICE")
+        if not rule:
+            raise Exception("Rule not configured")
+
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        for d in rule.details:
+            grouped[d.amountSource].append(d)
+
+        for amount_source, details in grouped.items():
+            amount = getattr(invoice, amount_source, 0) or 0
+            if amount == 0:
+                continue
+
+            line_objs = []
+            for d in details:
+                debit = amount if d.entryType.upper() == "DEBIT" else 0
+                credit = amount if d.entryType.upper() == "CREDIT" else 0
+                line_objs.append(
+                    JournalDetail(
+                        journalType="GENERAL",
+                        detailItemCode=d.accountCode,
+                        debitAmount=debit,
+                        creditAmount=credit,
+                        narration=f"{invoice.salesInvoiceNo} - {amount_source}",
+                        fiscalYear=str(invoice.salesInvoiceDate.year),
+                    )
+                )
+
+            total_debit = sum(l.debitAmount for l in line_objs)
+            total_credit = sum(l.creditAmount for l in line_objs)
+            if round(total_debit, 2) != round(total_credit, 2):
+                raise Exception(f"Journal not balanced for {amount_source}")
+
+            header_obj = JournalHeader(
+                journalDate=invoice.salesInvoiceDate,
+                referenceNo=f"{invoice.salesInvoiceNo}-{amount_source}",
+                description=f"Sales Invoice ({amount_source})",
+                journalType="GENERAL",
+                fiscalYear= await self.repository.get_current_fiscal_year(invoice.companyCode),
+                periodID=periodID,
+                createdDate=invoice.createdDate,
+            )
+
+            # Use repository to insert header + details
+            await self.repository.create_journal(header_obj, line_objs)

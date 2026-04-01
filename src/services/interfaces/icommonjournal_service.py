@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from src.schemas.journal_schema import JournalCreate
+from src.models.journaldetail_model import JournalDetail
+from src.models.journalheader_model import JournalHeader
 from decimal import Decimal
 from datetime import datetime
 from typing import Optional
@@ -34,4 +36,9 @@ class ICommonJournalService(ABC):
     @abstractmethod
     async def create_opening_balance(self, data):
         pass
+    
+    @abstractmethod
+    async def post_sales_invoice_journal(self, invoice):
+        pass
+
         

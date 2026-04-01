@@ -91,10 +91,27 @@ from src.repositories.interfaces.ilogin_repository import ILoginRepository
 from src.services.interfaces.ilogin_service import ILoginService
 from src.services.login_service import LoginService
 
-from src.depends.repository_depends import get_commonjournal_repository
+from src.depends.repository_depends import (
+    get_commonjournal_repository, 
+    get_accounting_rule_repository
+)
 from src.repositories.interfaces.icommonjournal_repository import ICommonJournalRepository
 from src.services.interfaces.icommonjournal_service import ICommonJournalService
+from src.repositories.interfaces.iaccountingrule_repository import IAccountingRuleRepository
 from src.services.commonjournal_service import CommonJournalService
+def get_commonjournal_service(repository: ICommonJournalRepository = Depends(get_commonjournal_repository),
+                              rule_repository: IAccountingRuleRepository = Depends(get_accounting_rule_repository)
+                              ) -> ICommonJournalService:
+    return CommonJournalService(repository, rule_repository)
+    
+
+from src.depends.repository_depends import get_accounting_rule_repository
+from src.repositories.interfaces.iaccountingrule_repository import IAccountingRuleRepository
+from src.services.interfaces.iaccountingrule_service import IAccountingRuleService
+from src.services.accountingrule_service import AccountingRuleService
+def get_accounting_rule_service(repository: IAccountingRuleRepository = Depends(get_accounting_rule_repository))->IAccountingRuleService:
+    return AccountingRuleService(repository)
+
 
 from src.depends.repository_depends import get_common_repository
 from src.repositories.interfaces.icommon_repository import ICommonRepository
@@ -189,19 +206,23 @@ def get_quotation_service(repository: IQuotationRepository = Depends(get_quotati
     return QuotationService(repository)
 
 
-from src.depends.repository_depends import get_accounting_rule_repository
-from src.repositories.interfaces.iaccountingrule_repository import IAccountingRuleRepository
-from src.services.interfaces.iaccountingrule_service import IAccountingRuleService
-from src.services.accountingrule_service import AccountingRuleService
-def get_accounting_rule_service(repository: IAccountingRuleRepository = Depends(get_accounting_rule_repository))->IAccountingRuleService:
-    return AccountingRuleService(repository)
+
+
 
 from src.depends.repository_depends import get_sales_invoice_repository
 from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
 from src.services.interfaces.isalesinvoice_service import ISalesInvoiceService
+from src.services.interfaces.icommonjournal_service import ICommonJournalService
+from src.depends.common_service_depends import get_common_journal_service
 from src.services.salesinvoice_service import SalesInvoiceService
-def get_sales_invoice_service(repository: ISalesInvoiceRepository = Depends(get_sales_invoice_repository))->ISalesInvoiceService:
-    return SalesInvoiceService(repository)
+def get_sales_invoice_service(
+    repository: ISalesInvoiceRepository = Depends(get_sales_invoice_repository),
+    journal_service: ICommonJournalService = Depends(get_common_journal_service)
+) -> ISalesInvoiceService:
+
+    return SalesInvoiceService(repository, journal_service)
+
+
 
 def get_balance_sheet_service(repository: IBalanceSheetRepository = Depends(get_balance_sheet_repository))->IBalanceSheetService:
     return BalanceSheetService(repository)
@@ -215,8 +236,7 @@ def get_bank_withdraw_service(repository: IBankWithdrawRepository = Depends(get_
 def get_bank_deposit_service(repository: IBankDepositRepository = Depends(get_bank_deposit_repository))->IBankDepositService:
     return BankDepositService(repository)
 
-def get_commonjournal_service(repository: ICommonJournalRepository = Depends(get_commonjournal_repository))->ICommonJournalService:
-    return CommonJournalService(repository)
+
 
 def get_common_service(repository: ICommonRepository = Depends(get_common_repository))->ICommonService:
     return CommonService(repository)

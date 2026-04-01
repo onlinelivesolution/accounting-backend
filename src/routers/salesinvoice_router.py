@@ -62,6 +62,24 @@ async def update_sales_invoice(
 
     return {"message": "Sales Invoice updated successfully"}
 
+@router.put("/approveSalesInvoice/{salesInvoiceID}")
+async def approve_sales_invoice(
+    salesInvoiceID: int,
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+    try:
+        result = await service.approve_sales_invoice(salesInvoiceID)
+        return {
+            "success": True,
+            "message": "Sales Invoice approved successfully",
+            "data": result
+        }
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.get("/getNextSalesInvoiceNo")
 async def get_next_salesinvoice_no(
     service: ISalesInvoiceService = Depends(get_sales_invoice_service)
