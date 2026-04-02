@@ -29,14 +29,7 @@ from datetime import datetime
 class CommonJournalRepository(GenericRepository[Journal], ICommonJournalRepository):
     def __init__(self, db: AsyncSession):
         super().__init__(Journal, db)
-    
-    # async def _get_open_period(self) -> AccountingPeriod | None:
-    #     result = await self.db.execute(
-    #         select(AccountingPeriod)
-    #         .where(AccountingPeriod.isClosed == False)
-    #         .order_by(AccountingPeriod.periodStart.desc())
-    #     )
-    #     return result.scalars().first()
+
     
     async def get_vat_detail_item(
         self,
@@ -259,12 +252,12 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
         await self.db.commit()
         return header
     
-    async def get_period_by_date(self, companyCode: str, date: datetime):
+    async def get_period_by_date(self, companyCode: str, txn_date):
 
         stmt = select(AccountingPeriod).where(
-            AccountingPeriod.periodStart <= date,
-            AccountingPeriod.periodEnd >= date,
-            AccountingPeriod.companyCode == companyCode
+            AccountingPeriod.companyCode == companyCode,
+            AccountingPeriod.periodStart <= txn_date,
+            AccountingPeriod.periodEnd >= txn_date
         )
 
         result = await self.db.execute(stmt)

@@ -15,7 +15,7 @@ class SalesInvoiceItemRequest(BaseModel):
     model_config = {"from_attributes": True}
 
 class SalesInvoiceCreateRequest(BaseModel):
-    salesOrderID: int
+    salesOrderID: Optional[int] = None
     salesInvoiceNo: str
     salesInvoiceDate: date
     customerID: int
@@ -25,6 +25,7 @@ class SalesInvoiceCreateRequest(BaseModel):
     totalAmount: float = Field(..., ge=0)
     remarks: Optional[str] = None
     createdBy: Optional[str] = None
+    companyCode: Optional[str] = None
     items: List[SalesInvoiceItemRequest]
 
     model_config = {"from_attributes": True}

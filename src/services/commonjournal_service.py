@@ -7,7 +7,8 @@ from common.enum.commenum import DefaultAccount
 from src.services.interfaces.icommonjournal_service import ICommonJournalService
 from src.repositories.interfaces.icommonjournal_repository import ICommonJournalRepository
 from src.repositories.interfaces.iaccountingrule_repository import IAccountingRuleRepository
-from collections import defaultdict
+from sqlalchemy import select
+from src.models.accountingperiod import AccountingPeriod
 from src.models.journalheader_model import JournalHeader
 from src.models.journaldetail_model import JournalDetail
 
@@ -234,9 +235,16 @@ class CommonJournalService(ICommonJournalService):
         # Commit all
         await self.repository.db.commit()
         return header
+    
+    async def _get_open_period(self):
+        result = await self.db.execute(
+            select(AccountingPeriod)
+            .where(AccountingPeriod.isClosed == False)
+        )
+        return result.scalar_one_or_none()
 
     async def post_sales_invoice_journal(self, invoice):
-        
+   
         period = await self.repository.get_period_by_date(
         invoice.companyCode,
         invoice.salesInvoiceDate
@@ -246,6 +254,7 @@ class CommonJournalService(ICommonJournalService):
             raise Exception("No accounting period found for this date")
 
         periodID = period.periodID
+        fiscal_year = period.fiscalYear
         
         rule = await self.rule_repository.get_rule("SALES_INVOICE")
         if not rule:
@@ -272,7 +281,7 @@ class CommonJournalService(ICommonJournalService):
                         debitAmount=debit,
                         creditAmount=credit,
                         narration=f"{invoice.salesInvoiceNo} - {amount_source}",
-                        fiscalYear=str(invoice.salesInvoiceDate.year),
+                        fiscalYear=fiscal_year,
                     )
                 )
 
@@ -282,13 +291,13 @@ class CommonJournalService(ICommonJournalService):
                 raise Exception(f"Journal not balanced for {amount_source}")
 
             header_obj = JournalHeader(
-                journalDate=invoice.salesInvoiceDate,
+                journalDate=datetime.utcnow(),
                 referenceNo=f"{invoice.salesInvoiceNo}-{amount_source}",
                 description=f"Sales Invoice ({amount_source})",
                 journalType="GENERAL",
-                fiscalYear= await self.repository.get_current_fiscal_year(invoice.companyCode),
+                fiscalYear= fiscal_year,
                 periodID=periodID,
-                createdDate=invoice.createdDate,
+                createdDate= datetime.utcnow(),
             )
 
             # Use repository to insert header + details

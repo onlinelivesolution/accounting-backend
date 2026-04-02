@@ -7,7 +7,7 @@ class SalesInvoice(Base):
     __tablename__ = "SalesInvoice"
     
     salesInvoiceID       = Column(Integer, primary_key=True, index=True) 
-    salesOrderID        = Column(Integer, nullable=False)
+    salesOrderID        = Column(Integer, nullable=True)
     salesInvoiceNo       = Column(String(30), nullable=False)
     customerID         = Column(Integer, ForeignKey("Customer.customerID"), nullable=False) 
     salesInvoiceDate     = Column(Date, nullable=False)  
