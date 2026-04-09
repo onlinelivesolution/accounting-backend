@@ -31,6 +31,7 @@ class SalesInvoiceService(ISalesInvoiceService):
             vatAmount=request.vatAmount,
             totalAmount=request.totalAmount,
             createdBy=request.createdBy,
+            companyCode=request.companyCode,
             createdDate=datetime.utcnow(),
             status="Draft",
             remarks=request.remarks,
