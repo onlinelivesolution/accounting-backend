@@ -16,6 +16,7 @@ class SalesInvoice(Base):
     vatAmount          = Column(Numeric(18, 2))
     totalAmount        = Column(Numeric(18, 2))
     status             = Column(String(20))
+    paymentStatus      = Column(String(20))
     remarks            = Column(String(255), nullable=False)
     createdBy          = Column(String(50), nullable=False)    
     createdDate        = Column(DateTime,server_default=func.now(), nullable=False)

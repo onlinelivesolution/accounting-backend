@@ -205,7 +205,15 @@ from src.services.quotation_service import QuotationService
 def get_quotation_service(repository: IQuotationRepository = Depends(get_quotation_repository))->IQuotationService:
     return QuotationService(repository)
 
-
+from src.depends.repository_depends import get_customer_receipt_repository
+from src.repositories.interfaces.icustomerreceipt_repository import ICustomerReceiptRepository
+from src.services.interfaces.icustomerreceipt_service import ICustomerReceiptService
+from src.services.customerreceipt_service import CustomerReceiptService
+def get_customer_receipt_service(
+    repository: ICustomerReceiptRepository = Depends(get_customer_receipt_repository),
+    db: AsyncSession = Depends(get_db)
+) ->ICustomerReceiptService:
+    return CustomerReceiptService(repository, db)
 
 
 

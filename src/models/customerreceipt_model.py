@@ -41,7 +41,7 @@ class CustomerReceiptDetail(Base):
         nullable=False
     )
 
-    invoiceID = Column(Integer, nullable=False)
+    salesInvoiceID = Column(Integer, nullable=False)
     paidAmount = Column(DECIMAL(18, 2), nullable=False)
 
     # Optional fields

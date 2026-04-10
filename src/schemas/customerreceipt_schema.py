@@ -9,7 +9,7 @@ from datetime import date
 # Detail Schema
 # ===============================
 class CustomerReceiptDetailBase(BaseModel):
-    invoiceID: int
+    salesInvoiceID: int
     paidAmount: float
     narration: Optional[str] = None
 
