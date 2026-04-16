@@ -13,6 +13,8 @@ class CustomerReceipt(Base):
 
     customerID = Column(Integer, nullable=False)
     totalAmount = Column(DECIMAL(18, 2), nullable=False)
+    allocatedAmount = Column(DECIMAL(18, 2), default=0)
+    unallocatedAmount = Column(DECIMAL(18, 2), default=0)
 
     status = Column(String(20), default="DRAFT")  # DRAFT / APPROVED
 

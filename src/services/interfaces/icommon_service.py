@@ -87,3 +87,7 @@ class ICommonService(ABC):
     @abstractmethod
     async def get_next_bank_code(self) -> str:
         pass
+    
+    @abstractmethod
+    async def get_next_receipt_no(self) -> str:
+        pass

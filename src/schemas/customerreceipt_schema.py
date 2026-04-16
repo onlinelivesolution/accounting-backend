@@ -1,6 +1,6 @@
 # schemas/customer_receipt_schema.py
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 from datetime import date
 
@@ -10,7 +10,8 @@ from datetime import date
 # ===============================
 class CustomerReceiptDetailBase(BaseModel):
     salesInvoiceID: int
-    paidAmount: float
+    paidAmount: float = Field(..., gt=0)
+    discountAmount: float = Field(default=0, ge=0)
     narration: Optional[str] = None
 
 
@@ -41,6 +42,8 @@ class CustomerReceiptCreate(CustomerReceiptBase):
 
 class CustomerReceiptResponse(CustomerReceiptBase):
     customerReceiptID: int
+    allocatedAmount: float
+    unallocatedAmount: float
     details: List[CustomerReceiptDetailResponse]
 
     model_config = ConfigDict(from_attributes=True)

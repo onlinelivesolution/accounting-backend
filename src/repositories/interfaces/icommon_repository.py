@@ -76,3 +76,7 @@ class ICommonRepository(ABC):
     @abstractmethod
     async def get_next_bank_code(self, db: AsyncSession) -> str:
         pass
+    
+    @abstractmethod
+    async def get_next_receipt_no(self) -> list:
+        pass

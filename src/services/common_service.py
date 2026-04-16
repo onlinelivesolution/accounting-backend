@@ -65,3 +65,6 @@ class CommonService(ICommonService):
     
     async def get_next_bank_code(self) -> str:
         return await self.repository.get_next_bank_code()
+    
+    async def get_next_receipt_no(self) -> str:
+        return await self.repository.get_next_receipt_no()

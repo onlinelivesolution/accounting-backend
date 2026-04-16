@@ -118,3 +118,11 @@ async def get_next_code(
     service: ICommonService = Depends(get_common_service),
 ):
     return await service.get_next_bank_code()
+
+@router.get("/getNextReceiptNo")
+async def get_next_receipt_no(
+    service: ICommonService = Depends(get_common_service)
+):
+    return {
+        "receiptNo": await service.get_next_receipt_no()
+    }

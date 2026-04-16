@@ -16,6 +16,7 @@ from src.schemas.bankaccount_schema import BankAccountDropdown
 from src.models.branch_model import Branch
 from src.models.company import Company
 from src.models.bankaccount_model import BankAccount
+from src.models.customerreceipt_model import CustomerReceipt
 from src.models.country_model import Country
 from src.dto.companydto import CompanyDTO
 from src.models.activitycenter import ActivityCenter
@@ -181,4 +182,16 @@ class CommonRepository(GenericRepository[DetailItem], ICommonRepository):
             next_code = max_code + 1
 
         return f"{next_code:05d}"
+    
+    async def get_next_receipt_no(self) -> str:
+        result = await self.db.execute(
+            select(func.max(CustomerReceipt.receiptNo))
+        )
+        last_no = result.scalar()
+
+        if not last_no:
+            return "RCP0000001"
+
+        number = int(last_no.replace("RCP", "")) + 1
+        return f"RCP{number:07d}"
 
