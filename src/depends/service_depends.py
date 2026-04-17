@@ -209,13 +209,12 @@ from src.depends.repository_depends import get_customer_receipt_repository
 from src.repositories.interfaces.icustomerreceipt_repository import ICustomerReceiptRepository
 from src.services.interfaces.icustomerreceipt_service import ICustomerReceiptService
 from src.services.customerreceipt_service import CustomerReceiptService
+from src.depends.common_service_depends import get_common_journal_service
 def get_customer_receipt_service(
     repository: ICustomerReceiptRepository = Depends(get_customer_receipt_repository),
-    db: AsyncSession = Depends(get_db)
-) ->ICustomerReceiptService:
-    return CustomerReceiptService(repository, db)
-
-
+    common_journal_service: ICommonJournalService = Depends(get_common_journal_service)  # ✅ ADD
+) -> ICustomerReceiptService:
+    return CustomerReceiptService(repository, common_journal_service)
 
 from src.depends.repository_depends import get_sales_invoice_repository
 from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository

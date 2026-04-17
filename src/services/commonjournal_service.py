@@ -302,3 +302,87 @@ class CommonJournalService(ICommonJournalService):
 
             # Use repository to insert header + details
             await self.repository.create_journal(header_obj, line_objs)
+    
+    async def post_customer_receipt_journal(self, receipt, request):
+
+        # ✅ Get period
+        period = await self.repository.get_period_by_date(
+            receipt.companyCode,
+            receipt.receiptDate
+        )
+
+        if not period:
+            raise Exception("No accounting period found for this date")
+
+        periodID = period.periodID
+        fiscal_year = period.fiscalYear
+
+        # ✅ Get rule
+        rule = await self.rule_repository.get_rule("CUSTOMER_RECEIPT")
+        if not rule:
+            raise Exception("Rule not configured")
+
+        # ✅ Calculate amounts
+        total_paid = sum(d.paidAmount for d in request.details) if request.details else 0
+        total_discount = sum(d.discountAmount for d in request.details) if request.details else 0
+        total_applied = total_paid + total_discount
+        total_unallocated = receipt.unallocatedAmount or 0
+
+        # 👉 attach dynamic values
+        receipt.totalPaid = total_paid
+        receipt.totalDiscount = total_discount
+        receipt.totalApplied = total_applied
+        receipt.totalUnallocated = total_unallocated
+
+        # ✅ Group rules
+        grouped = defaultdict(list)
+        for d in rule.details:
+            grouped[d.amountSource].append(d)
+
+        # =========================================================
+        # 🔥 Loop per amount source (same as your invoice logic)
+        # =========================================================
+        for amount_source, details in grouped.items():
+
+            amount = getattr(receipt, amount_source, 0) or 0
+
+            if amount == 0:
+                continue
+
+            line_objs = []
+
+            for d in details:
+                debit = amount if d.entryType.upper() == "DEBIT" else 0
+                credit = amount if d.entryType.upper() == "CREDIT" else 0
+
+                line_objs.append(
+                    JournalDetail(
+                        journalType="GENERAL",
+                        detailItemCode=d.accountCode,
+                        debitAmount=debit,
+                        creditAmount=credit,
+                        narration=f"{receipt.receiptNo} - {amount_source}",
+                        fiscalYear=fiscal_year,
+                    )
+                )
+
+            # ✅ Balance check
+            total_debit = sum(l.debitAmount for l in line_objs)
+            total_credit = sum(l.creditAmount for l in line_objs)
+
+            if round(total_debit, 2) != round(total_credit, 2):
+                raise Exception(f"Journal not balanced for {amount_source}")
+
+            # ✅ Header
+            header_obj = JournalHeader(
+                journalDate=receipt.receiptDate,
+                referenceNo=f"{receipt.receiptNo}-{amount_source}",
+                description=f"Customer Receipt ({amount_source})",
+                journalType="GENERAL",
+                fiscalYear=fiscal_year,
+                periodID=periodID,
+                createdDate=datetime.utcnow(),
+            )
+
+            # ✅ Save via repository (same pattern)
+            await self.repository.create_journal(header_obj, line_objs)

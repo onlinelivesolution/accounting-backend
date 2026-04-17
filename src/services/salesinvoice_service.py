@@ -15,7 +15,7 @@ class SalesInvoiceService(ISalesInvoiceService):
     def __init__(
         self,
         repository: ISalesInvoiceRepository,
-        journal_service: ICommonJournalService   # ✅ ADD THIS
+        journal_service: ICommonJournalService
     ):
         self.repository = repository
         self.journal_service = journal_service

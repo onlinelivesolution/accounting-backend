@@ -22,3 +22,7 @@ class ICustomerReceiptRepository(ABC):
     async def get_invoice_by_id(self, invoice_id: int) -> SalesInvoice:
         pass
     
+    @abstractmethod
+    async def get_total_applied_amount(self, invoice_id: int) -> float:
+        pass
+    

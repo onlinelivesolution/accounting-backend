@@ -40,5 +40,9 @@ class ICommonJournalService(ABC):
     @abstractmethod
     async def post_sales_invoice_journal(self, invoice):
         pass
+    
+    @abstractmethod
+    async def post_customer_receipt_journal(self, invoice):
+        pass
 
         

@@ -9,7 +9,7 @@ from datetime import date
 # Detail Schema
 # ===============================
 class CustomerReceiptDetailBase(BaseModel):
-    salesInvoiceID: int
+    salesInvoiceID: int = Field(..., gt=0)
     paidAmount: float = Field(..., gt=0)
     discountAmount: float = Field(default=0, ge=0)
     narration: Optional[str] = None
@@ -31,9 +31,10 @@ class CustomerReceiptDetailResponse(CustomerReceiptDetailBase):
 class CustomerReceiptBase(BaseModel):
     receiptNo: str
     receiptDate: date
-    customerID: int
-    totalAmount: float
+    customerID: int = Field(..., gt=0)
+    totalAmount: float = Field(..., ge=0)
     status: Optional[str] = "DRAFT"
+    companyCode: str = "01"
 
 
 class CustomerReceiptCreate(CustomerReceiptBase):

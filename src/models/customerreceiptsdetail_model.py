@@ -18,6 +18,7 @@ class CustomerReceiptDetail(Base):
 
     invoiceID = Column(Integer, nullable=False)
     paidAmount = Column(DECIMAL(18, 2), nullable=False)
+    discountAmount = Column(DECIMAL(18, 2), nullable=True)
 
     # Optional fields
     narration = Column(String(255), nullable=True)

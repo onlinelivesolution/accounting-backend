@@ -23,6 +23,7 @@ class CustomerReceipt(Base):
     createdDate = Column(DateTime, default=datetime.utcnow)
     updatedBy = Column(String(50), nullable=True)
     updatedDate = Column(DateTime, nullable=True)
+    companyCode = Column(String(2), nullable=True)
 
     # ✅ Relationship
     details = relationship(
@@ -45,7 +46,7 @@ class CustomerReceiptDetail(Base):
 
     salesInvoiceID = Column(Integer, nullable=False)
     paidAmount = Column(DECIMAL(18, 2), nullable=False)
-
+    discountAmount = Column(DECIMAL(18, 2), nullable=False)
     # Optional fields
     narration = Column(String(255), nullable=True)
 

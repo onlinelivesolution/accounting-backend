@@ -3,13 +3,18 @@ from fastapi import HTTPException
 from src.services.interfaces.icustomerreceipt_service import ICustomerReceiptService
 from src.repositories.interfaces.icustomerreceipt_repository import ICustomerReceiptRepository
 from src.models.customerreceipt_model import CustomerReceipt, CustomerReceiptDetail
+from src.services.interfaces.icommonjournal_service import ICommonJournalService
 
 
 class CustomerReceiptService(ICustomerReceiptService):
-
-    def __init__(self, repository: ICustomerReceiptRepository, db: AsyncSession):
+    
+    def __init__(
+        self,
+        repository: ICustomerReceiptRepository,
+        common_journal_service: ICommonJournalService   # ✅ ADD
+    ):
         self.repository = repository
-        self.db = db
+        self.common_journal_service = common_journal_service
 
     # ✅ Load invoices (with due calculation)
     async def get_customer_invoices(self, customer_id: int):
@@ -36,22 +41,20 @@ class CustomerReceiptService(ICustomerReceiptService):
 
     async def create_customer_receipt(self, request):
 
-        async with self.db.begin():
+        async with self.repository.begin():   # ✅ FIX
 
-            # ✅ Calculate allocated from request
-            allocated_amount = sum(d.paidAmount for d in request.details) if request.details else 0
+            allocated_amount = sum(
+                (d.paidAmount + d.discountAmount) for d in request.details
+            ) if request.details else 0
 
-            # ✅ Calculate unallocated
             unallocated_amount = request.totalAmount - allocated_amount
 
-            # 🔴 Validation
             if allocated_amount > request.totalAmount:
                 raise HTTPException(
                     status_code=400,
                     detail="Allocated amount cannot exceed total amount"
                 )
 
-            # ✅ Create master
             receipt = CustomerReceipt(
                 receiptNo=request.receiptNo,
                 receiptDate=request.receiptDate,
@@ -59,91 +62,63 @@ class CustomerReceiptService(ICustomerReceiptService):
                 totalAmount=request.totalAmount,
                 allocatedAmount=allocated_amount,
                 unallocatedAmount=unallocated_amount,
-                status=request.status
+                status=request.status,
+                companyCode=request.companyCode
             )
 
             await self.repository.create_customer_receipt(receipt)
 
-            # ✅ If no details → fully unallocated (Flow A)
+            # ✅ FIX
+            await self.repository.flush()
+
+            # =====================================================
+            # ✅ CASE 1: NO DETAILS
+            # =====================================================
             if not request.details:
+                await self.common_journal_service.post_customer_receipt_journal(receipt, request)
                 return receipt
 
-            # ✅ If details exist → allocate (Flow B)
+            # =====================================================
+            # ✅ CASE 2: WITH DETAILS
+            # =====================================================
             for d in request.details:
 
-                paid_so_far = await self.repository.get_total_paid_amount(d.salesInvoiceID)
+                applied_so_far = await self.repository.get_total_applied_amount(d.salesInvoiceID)
                 invoice = await self.repository.get_invoice_by_id(d.salesInvoiceID)
 
-                due = float(invoice.totalAmount) - paid_so_far
+                due = float(invoice.totalAmount) - applied_so_far
 
-                if d.paidAmount > due:
+                if (d.paidAmount + d.discountAmount) > due:
                     raise HTTPException(
                         status_code=400,
-                        detail=f"Receive amount exceeds due for invoice {invoice.salesInvoiceNo}"
+                        detail=f"Receive + Discount exceeds due for invoice {invoice.salesInvoiceNo}"
                     )
 
                 detail = CustomerReceiptDetail(
                     customerReceiptID=receipt.customerReceiptID,
                     salesInvoiceID=d.salesInvoiceID,
                     paidAmount=d.paidAmount,
+                    discountAmount=d.discountAmount,
                     narration=d.narration
                 )
 
-                self.db.add(detail)
+                # ✅ FIX
+                await self.repository.add_detail(detail)
 
-                # ✅ Update payment status
-                total_paid = paid_so_far + d.paidAmount
+                total_applied = applied_so_far + d.paidAmount + d.discountAmount
 
-                if total_paid >= float(invoice.totalAmount):
+                if total_applied >= float(invoice.totalAmount):
                     invoice.paymentStatus = "PAID"
-                elif total_paid > 0:
+                elif total_applied > 0:
                     invoice.paymentStatus = "PARTIAL"
+
+            # =====================================================
+            # 🔥 POST JOURNAL
+            # =====================================================
+            await self.common_journal_service.post_customer_receipt_journal(receipt, request)
 
             return receipt
 
-    # ✅ Create receipt + business rules
-    # async def create_customer_receipt(self, request):
-    #     async with self.db.begin():
-
-    #         receipt = CustomerReceipt(
-    #             receiptNo=request.receiptNo,
-    #             receiptDate=request.receiptDate,
-    #             customerID=request.customerID,
-    #             totalAmount=request.totalAmount,
-    #             status=request.status
-    #         )
-
-    #         await self.repository.create_customer_receipt(receipt)
-
-    #         for d in request.details:
-
-    #             # 🔴 Business validation
-    #             paid_so_far = await self.repository.get_total_paid_amount(d.salesInvoiceID)
-    #             invoice = await self.repository.get_invoice_by_id(d.salesInvoiceID)
-
-    #             due = float(invoice.totalAmount) - paid_so_far
-
-    #             if d.paidAmount > due:
-    #                 raise Exception(f"Receive amount exceeds due for invoice {invoice.salesInvoiceNo}")
-
-    #             detail = CustomerReceiptDetail(
-    #                 customerReceiptID=receipt.customerReceiptID,
-    #                 salesInvoiceID=d.salesInvoiceID,
-    #                 paidAmount=d.paidAmount,
-    #                 narration=d.narration
-    #             )
-
-    #             self.db.add(detail)
-
-    #             # ✅ Update payment status
-    #             total_paid = paid_so_far + d.paidAmount
-
-    #             if total_paid >= float(invoice.totalAmount):
-    #                 invoice.paymentStatus = "PAID"
-    #             elif total_paid > 0:
-    #                 invoice.paymentStatus = "PARTIAL"
-
-    #         return receipt
         
     async def get_customer_balance(self, customer_id: int):
 
