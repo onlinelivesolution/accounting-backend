@@ -269,7 +269,7 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
         for line in details:
             line.journalHeaderID = header.journalHeaderID
         self.db.add_all(details)
-        await self.db.commit()
+        # await self.db.commit()
         return header
     
     async def create_invoice_journal_entry(self, data: dict):
