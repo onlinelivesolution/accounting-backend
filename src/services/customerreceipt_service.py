@@ -17,13 +17,67 @@ class CustomerReceiptService(ICustomerReceiptService):
         self.common_journal_service = common_journal_service
 
     # ✅ Load invoices (with due calculation)
+    # async def get_customer_invoices(self, customer_id: int):
+    #     invoices = await self.repository.get_customer_invoices(customer_id)
+
+    #     response = []
+    #     for inv in invoices:
+    #         paid = await self.repository.get_total_paid_amount(inv.salesInvoiceID)
+    #         due = float(inv.totalAmount) - paid
+
+    #         response.append({
+    #             "salesInvoiceID": inv.salesInvoiceID,
+    #             "salesInvoiceNo": inv.salesInvoiceNo,
+    #             "SalesInvoiceDate": inv.salesInvoiceDate,
+    #             "totalAmount": float(inv.totalAmount),
+    #             "dueAmount": due,
+    #             "receiveAmount": 0,
+    #             "discountAmount": 0
+    #         })
+
+    #     return response
+    
+    # async def get_customer_invoices(self, customer_id: int):
+    #     invoices = await self.repository.get_customer_invoices(customer_id)
+
+    #     response = []
+    #     for inv in invoices:
+
+    #         # ✅ Use applied amount (paid + discount)
+    #         applied = await self.repository.get_total_applied_amount(inv.salesInvoiceID)
+
+    #         due = float(inv.totalAmount) - applied
+
+    #         # ✅ Safety (avoid negative due due to rounding)
+    #         if due < 0:
+    #             due = 0
+
+    #         response.append({
+    #             "salesInvoiceID": inv.salesInvoiceID,
+    #             "salesInvoiceNo": inv.salesInvoiceNo,
+    #             "SalesInvoiceDate": inv.salesInvoiceDate,
+    #             "totalAmount": float(inv.totalAmount),
+    #             "dueAmount": due,
+    #             "receiveAmount": 0,
+    #             "discountAmount": 0
+    #         })
+
+    #     return response
+    
     async def get_customer_invoices(self, customer_id: int):
         invoices = await self.repository.get_customer_invoices(customer_id)
 
         response = []
         for inv in invoices:
-            paid = await self.repository.get_total_paid_amount(inv.salesInvoiceID)
-            due = float(inv.totalAmount) - paid
+
+            # ✅ Paid + Discount
+            applied = await self.repository.get_total_applied_amount(inv.salesInvoiceID)
+
+            due = float(inv.totalAmount) - applied
+
+            # ✅ Skip fully settled invoices
+            if due <= 0:
+                continue
 
             response.append({
                 "salesInvoiceID": inv.salesInvoiceID,
