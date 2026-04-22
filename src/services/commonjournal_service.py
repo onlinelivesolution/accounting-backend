@@ -355,10 +355,18 @@ class CommonJournalService(ICommonJournalService):
                 debit = amount if d.entryType.upper() == "DEBIT" else 0
                 credit = amount if d.entryType.upper() == "CREDIT" else 0
 
+                # ✅ Dynamic account handling
+                if d.isDynamicAccount:
+                    if not request.accountID:
+                        raise Exception("Payment account is required")
+                    account_code = request.accountID
+                else:
+                    account_code = d.accountCode
+
                 line_objs.append(
                     JournalDetail(
                         journalType="GENERAL",
-                        detailItemCode=d.accountCode,
+                        detailItemCode=account_code,
                         debitAmount=debit,
                         creditAmount=credit,
                         narration=f"{receipt.receiptNo} - {amount_source}",

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from src.services.database import Base
 from sqlalchemy.sql import func
@@ -13,5 +13,6 @@ class AccountingRuleDetail(Base):
     accountCode = Column(String(20))
     entryType = Column(String(10))  # DEBIT / CREDIT
     amountSource = Column(String(50))
+    isDynamicAccount = Column(Boolean, default=False)
 
     rule = relationship("AccountingRule", back_populates="details")
