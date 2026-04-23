@@ -38,6 +38,7 @@ class CustomerReceiptBase(BaseModel):
 
 
 class CustomerReceiptCreate(CustomerReceiptBase):
+    accountID: str
     details: List[CustomerReceiptDetailCreate]
 
 

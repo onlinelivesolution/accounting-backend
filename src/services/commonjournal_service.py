@@ -354,11 +354,17 @@ class CommonJournalService(ICommonJournalService):
             for d in details:
                 debit = amount if d.entryType.upper() == "DEBIT" else 0
                 credit = amount if d.entryType.upper() == "CREDIT" else 0
+                
+                account_code = d.accountCode
+
+                # # ✅ Override for Cash/Bank account
+                if not account_code:
+                    account_code = request.accountID
 
                 line_objs.append(
                     JournalDetail(
                         journalType="GENERAL",
-                        detailItemCode=d.accountCode,
+                        detailItemCode=account_code,
                         debitAmount=debit,
                         creditAmount=credit,
                         narration=f"{receipt.receiptNo} - {amount_source}",
