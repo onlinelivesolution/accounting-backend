@@ -361,6 +361,14 @@ class CommonJournalService(ICommonJournalService):
                 if not account_code:
                     account_code = request.accountID
 
+                # ✅ Dynamic account handling
+                if d.isDynamicAccount:
+                    if not request.accountID:
+                        raise Exception("Payment account is required")
+                    account_code = request.accountID
+                else:
+                    account_code = d.accountCode
+
                 line_objs.append(
                     JournalDetail(
                         journalType="GENERAL",
