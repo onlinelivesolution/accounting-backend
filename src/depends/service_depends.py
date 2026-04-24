@@ -222,14 +222,43 @@ from src.services.interfaces.isalesinvoice_service import ISalesInvoiceService
 from src.services.interfaces.icommonjournal_service import ICommonJournalService
 from src.depends.common_service_depends import get_common_journal_service
 from src.services.salesinvoice_service import SalesInvoiceService
+
+from src.services.common.interfaces.iemail_service import IEmailService
+from src.services.common.interfaces.ipdf_service import IPdfService
+from src.repositories.interfaces.iemail_repository import IEmailRepository
+from src.repositories.interfaces.ipdf_repository import IPdfRepository
+
+from src.depends.repository_depends import get_email_repository
+
+from src.depends.repository_depends import get_pdf_repository
+
 def get_sales_invoice_service(
     repository: ISalesInvoiceRepository = Depends(get_sales_invoice_repository),
-    journal_service: ICommonJournalService = Depends(get_common_journal_service)
+    journal_service: ICommonJournalService = Depends(get_common_journal_service),
+    email_repository: IEmailRepository = Depends(get_email_repository),
+    pdf_repository: IPdfRepository = Depends(get_pdf_repository),
 ) -> ISalesInvoiceService:
 
-    return SalesInvoiceService(repository, journal_service)
+    return SalesInvoiceService(
+        repository,
+        journal_service,
+        email_repository,
+        pdf_repository
+    )
 
+# def get_sales_invoice_service(
+#     repository: ISalesInvoiceRepository = Depends(get_sales_invoice_repository),
+#     journal_service: ICommonJournalService = Depends(get_common_journal_service),
+#     email_service: IEmailService = Depends(get_email_service),
+#     pdf_service: IPdfService = Depends(get_pdf_service),
+# ) -> ISalesInvoiceService:
 
+#     return SalesInvoiceService(
+#         repository,
+#         journal_service,
+#         email_service,
+#         pdf_service
+#     )
 
 def get_balance_sheet_service(repository: IBalanceSheetRepository = Depends(get_balance_sheet_repository))->IBalanceSheetService:
     return BalanceSheetService(repository)

@@ -1,6 +1,12 @@
 from src.services.interfaces.isalesinvoice_service import ISalesInvoiceService
 from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
 from src.services.interfaces.icommonjournal_service import ICommonJournalService
+from src.services.common.interfaces.iemail_service import IEmailService
+from src.services.common.interfaces.ipdf_service import IPdfService
+
+from src.repositories.interfaces.iemail_repository import IEmailRepository
+from src.repositories.interfaces.ipdf_repository import IPdfRepository
+
 from src.models.salesinvoice import SalesInvoice
 from src.models.salesinvoicedetail import SalesInvoiceDetail
 from src.schemas.salesinvoice_schema import SalesInvoiceCreateRequest
@@ -15,10 +21,14 @@ class SalesInvoiceService(ISalesInvoiceService):
     def __init__(
         self,
         repository: ISalesInvoiceRepository,
-        journal_service: ICommonJournalService
+        journal_service: ICommonJournalService,
+        email_service: IEmailService,
+        pdf_service: IPdfService
     ):
         self.repository = repository
         self.journal_service = journal_service
+        self.email_service = email_service
+        self.pdf_service = pdf_service
     
     async def create_sales_invoice(self, request: SalesInvoiceCreateRequest) -> SalesInvoice:
         salesinvoice = SalesInvoice(
@@ -265,3 +275,23 @@ class SalesInvoiceService(ISalesInvoiceService):
     
     async def update(self, invoice: SalesInvoice) -> SalesInvoice:
         return await self.repository.update(invoice)
+    
+    async def send_invoice_email(self, request):
+
+        invoice = await self.repository.get_sales_invoice_by_id(request.salesInvoiceID)
+
+        if not invoice:
+            raise Exception("Invoice not found")
+
+        if not request.to:
+            raise Exception("Customer email not found")
+
+        pdf_bytes = await self.pdf_repository.generate_invoice_pdf(invoice)
+
+        await self.repository.send_email_with_attachment(
+            to=request.to,
+            subject=request.subject,
+            body=request.body,
+            attachment_bytes=pdf_bytes,
+            filename=f"Invoice_{invoice.salesInvoiceNo}.pdf"
+        )

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from typing import Optional
+from schemas.commonemail_schema import SendSalesInvoiceEmailRequest
 from fastapi import APIRouter, Depends, Query
 from src.schemas.commondropdown_schema import SalesOrderDropdown
 from src.schemas.salesordertosalesinvoice_schema import SalesOrderToSalesInvoiceResponse
@@ -80,6 +81,14 @@ async def approve_sales_invoice(
         print(traceback.format_exc())
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.post("/send-email")
+async def send_invoice_email(
+    request: SendSalesInvoiceEmailRequest,
+    service: ISalesInvoiceService = Depends(get_sales_invoice_service)
+):
+    await service.send_invoice_email(request)
+    return {"message": "Email sent successfully"}
+
 @router.get("/getNextSalesInvoiceNo")
 async def get_next_salesinvoice_no(
     service: ISalesInvoiceService = Depends(get_sales_invoice_service)
@@ -112,6 +121,8 @@ async def get_sales_order_dropdown(
     service: ISalesInvoiceService = Depends(get_sales_invoice_service)
 ):
     return await service.get_sales_order_dropdown()
+
+
 
 @router.get("/{salesOrderID}/to-sales-invoice",
     response_model=SalesOrderToSalesInvoiceResponse
