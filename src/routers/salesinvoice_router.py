@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from typing import Optional
-from schemas.commonemail_schema import SendSalesInvoiceEmailRequest
+from src.schemas.commonemail_schema import SendSalesInvoiceEmailRequest
 from fastapi import APIRouter, Depends, Query
 from src.schemas.commondropdown_schema import SalesOrderDropdown
 from src.schemas.salesordertosalesinvoice_schema import SalesOrderToSalesInvoiceResponse

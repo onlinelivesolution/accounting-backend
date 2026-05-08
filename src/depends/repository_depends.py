@@ -97,13 +97,13 @@ def get_sales_invoice_repository(db: AsyncSession = Depends(get_db))->ISalesInvo
 
 from src.repositories.interfaces.iemail_repository import IEmailRepository
 from src.repositories.email_repository import EmailRepository
-def get_email_repository(db: AsyncSession = Depends(get_db))->IEmailRepository:
-    return EmailRepository(db)
+def get_email_repository() -> IEmailRepository:
+    return EmailRepository()
 
 from src.repositories.interfaces.ipdf_repository import IPdfRepository
 from src.repositories.pdf_repository import PdfRepository
-def get_pdf_repository(db: AsyncSession = Depends(get_db))->IPdfRepository:
-    return PdfRepository(db)
+def get_pdf_repository() -> IPdfRepository:
+    return PdfRepository()
 
 from src.repositories.interfaces.iaccountingrule_repository import IAccountingRuleRepository
 from src.repositories.accountingrule_repository import AccountingRuleRepository
