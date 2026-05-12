@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 
+
 from src.schemas.loginschema import (
     LoginRequest,
     LoginOTPResponse,
-    VerifyOTPRequest,
-    LoginResponse
+    OTPVerifyResponse,
+    OTPVerifyRequest
 )
 
 
@@ -18,8 +19,5 @@ class ILoginService(ABC):
         pass
 
     @abstractmethod
-    async def verify_otp(
-        self,
-        request: VerifyOTPRequest
-    ) -> LoginResponse:
+    async def verify_otp(self, request: OTPVerifyRequest) -> OTPVerifyResponse:
         pass

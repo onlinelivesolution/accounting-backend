@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 
 
 class LoginRequest(BaseModel):
@@ -12,22 +12,28 @@ class LoginOTPResponse(BaseModel):
     userID: int
 
 
-class VerifyOTPRequest(BaseModel):
+class UserSchema(BaseModel):
     userID: int
-    otp: str
+    userName: str
+    roleID: int
 
 
 class PermissionSchema(BaseModel):
     permissionName: str
     actionName: str
-
-
-class UserSchema(BaseModel):
-    userID: int
-    userName: str
+    isAllowed: bool
 
 
 class LoginResponse(BaseModel):
     token: str
     user: UserSchema
-    permissions: List[PermissionSchema]
+    
+class OTPVerifyRequest(BaseModel):
+    userID: int
+    otpCode: str
+
+
+class OTPVerifyResponse(BaseModel):
+    token: str
+    userName: str
+    message: str

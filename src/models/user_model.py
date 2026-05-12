@@ -20,6 +20,8 @@ class UserInfo(Base):
     createdDate = Column(DateTime)
     updatedBy = Column(String(50))
     updatedDate = Column(DateTime)
+    failedLoginAttempts = Column(Integer, default=0)
+    lockedUntil = Column(DateTime, nullable=True)
 
     # Relationship to Role
     role = relationship("Role", back_populates="users")
