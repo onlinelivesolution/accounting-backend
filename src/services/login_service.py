@@ -72,53 +72,48 @@ class LoginService:
         )
 
         await self.repository.save_otp(otp)
+        
+        
+        print("===================================")
+        print("OTP CODE:", otp_code)
+        print("===================================")
 
-        print("OTP:", otp_code)
+        return {
+            "message": "OTP sent successfully",
+            "userID": user.userID,
+            "otp": otp_code   # TEMPORARY FOR DEVELOPMENT
+        }
 
-        return LoginOTPResponse(message="OTP sent successfully", userID=user.userID)
-    
+        # print("OTP:", otp_code)
+
+        # return LoginOTPResponse(message="OTP sent successfully", userID=user.userID)
+
     async def verify_otp(self, request):
 
-        otp = await self.repository.get_valid_otp(
-            request.userID,
-            request.otpCode
-        )
+        otp = await self.repository.get_valid_otp(request.userID, request.otpCode)
 
         if not otp:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid OTP"
-            )
+            raise HTTPException(status_code=401, detail="Invalid OTP")
 
         if otp.expiryTime < datetime.utcnow():
 
-            raise HTTPException(
-                status_code=401,
-                detail="OTP expired"
-            )
+            raise HTTPException(status_code=401, detail="OTP expired")
 
-        await self.repository.mark_otp_used(
-            otp.otpID
-        )
+        await self.repository.mark_otp_used(otp.otpID)
 
-        user = await self.repository.get_user_by_id(
-            request.userID
-        )
+        user = await self.repository.get_user_by_id(request.userID)
 
-        token = create_access_token({
-            "userID": user.userID,
-            "roleID": user.roleID
-        })
+        token = create_access_token({"userID": user.userID, "roleID": user.roleID})
 
         return {
             "token": token,
             "user": {
                 "userID": user.userID,
                 "userName": user.userName,
-                "roleID": user.roleID
-            }
+                "roleID": user.roleID,
+            },
         }
-        
+
     async def get_permissions(self, role_id: int):
 
         permissions = await self.repository.get_user_permissions(role_id)

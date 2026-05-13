@@ -10,6 +10,7 @@ class LoginRequest(BaseModel):
 class LoginOTPResponse(BaseModel):
     message: str
     userID: int
+    otp: str
 
 
 class UserSchema(BaseModel):
