@@ -1,6 +1,7 @@
 # main.py
 from fastapi import FastAPI # or whatever your endpoint file 
 from src.routers import customerreceipt_router
+from src.routers import tenant_router
 from src.routers import salesinvoice_router
 from src.routers import quotation_router
 from src.routers import accountingrule_router
@@ -50,6 +51,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(tenant_router.router)
 app.include_router(customerreceipt_router.router)
 app.include_router(salesinvoice_router.router)
 app.include_router(accountingrule_router.router)

@@ -73,6 +73,13 @@ from src.repositories.accountreport__repository import AccountReportRepository
 
 from src.repositories.interfaces.ibanktransaction_repository import IBankTransactionRepository
 from src.repositories.banktransaction_repository import BankTransactionRepository
+def get_bank_transaction_repository(db: AsyncSession = Depends(get_db))->IBankTransactionRepository:
+    return BankTransactionRepository(db)
+
+from src.repositories.interfaces.itenant_repository import ITenantRepository
+from src.repositories.tenant_repository import TenantRepository
+def get_tenant_repository(db: AsyncSession = Depends(get_db))->ITenantRepository:
+    return TenantRepository(db)
 
 def get_vatrate_dropdown_repository(db: AsyncSession = Depends(get_db))->ICommonDropdownRepository:
     return CommonDropdownRepository(db)
@@ -119,8 +126,7 @@ def get_sales_order_repository(db: AsyncSession = Depends(get_db))->ISalesOrderR
     return SalesOrderRepository(db)
 
 
-def get_bank_transaction_repository(db: AsyncSession = Depends(get_db))->IBankTransactionRepository:
-    return BankTransactionRepository(db)
+
 
 def get_account_report_repository(db: AsyncSession = Depends(get_db))->IAccountReportRepository:
     return AccountReportRepository(db)

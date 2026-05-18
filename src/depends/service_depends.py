@@ -112,6 +112,12 @@ from src.services.accountingrule_service import AccountingRuleService
 def get_accounting_rule_service(repository: IAccountingRuleRepository = Depends(get_accounting_rule_repository))->IAccountingRuleService:
     return AccountingRuleService(repository)
 
+from src.depends.repository_depends import get_tenant_repository
+from src.repositories.interfaces.itenant_repository import ITenantRepository
+from src.services.interfaces.itenant_service import ITenantService
+from src.services.tenant_service import TenantService
+def get_tenant_service(repository: ITenantRepository = Depends(get_tenant_repository))->ITenantService:
+    return TenantService(repository)
 
 from src.depends.repository_depends import get_common_repository
 from src.repositories.interfaces.icommon_repository import ICommonRepository
