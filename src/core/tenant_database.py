@@ -15,7 +15,7 @@ def generate_database_name(email: str):
 
     safe_email = email.replace("@", "_").replace(".", "_").replace("-", "_")
 
-    return f"ERP_{safe_email}"
+    return f"OS_{safe_email}"
 
 
 # MASTER DB CONNECTION

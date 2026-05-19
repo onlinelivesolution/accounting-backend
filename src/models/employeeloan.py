@@ -6,7 +6,7 @@ class EmployeeLoan(Base):
     __tablename__ = "EmployeeLoan"
     
     employeeLoanID         = Column(Integer, primary_key=True, index=True)    
-    employeeID             = Column(Integer, ForeignKey("Employee.employeeID"))
+    employeeID             = Column(BigInteger, ForeignKey("Employee.employeeID"))
     loanAmount             = Column(Numeric(18, 2), nullable=False)
     interest               = Column(Numeric(18, 2), nullable=False)
     loanPurpose            = Column(String(200), nullable=False)    

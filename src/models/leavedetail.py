@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Boolean, BigInteger
 
 from sqlalchemy.orm import relationship
 from src.services.database import Base
@@ -8,7 +8,7 @@ class LeaveDetail(Base):
     
     leaveDetailID         = Column(Integer, primary_key=True, index=True) 
     leaveID               = Column(Integer, ForeignKey("Leave.leaveID"))
-    employeeID            = Column(Integer, ForeignKey("Employee.employeeID"))
+    employeeID            = Column(BigInteger, ForeignKey("Employee.employeeID"))
     startDate             = Column(DateTime, nullable=False)
     endDate               = Column(DateTime, nullable=False) 
     outOfStation          = Column(String(100), nullable=False) 

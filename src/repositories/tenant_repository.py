@@ -4,6 +4,7 @@ from src.repositories.interfaces.itenant_repository import ITenantRepository
 
 from src.schemas.tenant_schema import TenantCreate
 from src.core.tenant_table_creator import create_tenant_tables
+from src.core.tenant_seed_data import copy_master_data
 
 from src.models.tenant import Tenant
 
@@ -19,9 +20,10 @@ class TenantRepository(ITenantRepository):
 
         # Create Database
         database_name = await create_tenant_database(request.email)
-        
+
         # Create tables
         await create_tenant_tables(database_name)
+        await copy_master_data(database_name)
 
         # Save Tenant Info
         tenant = Tenant(

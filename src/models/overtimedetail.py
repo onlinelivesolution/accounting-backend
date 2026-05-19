@@ -9,7 +9,7 @@ class OvertimeDetail(Base):
     
     overtimeDetailID     = Column(Integer, primary_key=True, index=True)    
     overtimeID           = Column(Integer, ForeignKey("Overtime.overtimeID"))
-    employeeID           = Column(Integer, ForeignKey("Employee.employeeID")) 
+    employeeID           = Column(BigInteger, ForeignKey("Employee.employeeID")) 
     perHourRate          = Column(Numeric(18, 2), nullable=False)
     applicableRate       = Column(Numeric(18, 2), nullable=False)
     totalHour            = Column(Numeric(18, 2), nullable=False)

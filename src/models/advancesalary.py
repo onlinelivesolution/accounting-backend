@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Numeric, DateTime, Boolean, ForeignKey, BigInteger
 from sqlalchemy.orm import relationship
 from src.services.database import Base
 
@@ -6,7 +6,7 @@ class AdvanceSalary(Base):
     __tablename__ = "AdvanceSalary"
     
     advanceSalaryID        = Column(Integer, primary_key=True, index=True)    
-    employeeID             = Column(Integer, ForeignKey("Employee.employeeID"))
+    employeeID             = Column(BigInteger, ForeignKey("Employee.employeeID"))
     amount                 = Column(Numeric(18, 2), nullable=False)
     purpose                = Column(String(200), nullable=False)
     fiscalYear             = Column(String(4), nullable=False)    

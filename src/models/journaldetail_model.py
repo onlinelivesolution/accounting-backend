@@ -18,7 +18,7 @@ class JournalDetail(Base):
     )
 
     detailItemCode = Column(
-        String(50),
+        String(9),
         ForeignKey("DetailItem.detailItemCode"),
         nullable=False
     )
