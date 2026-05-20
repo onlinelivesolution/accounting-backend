@@ -4,8 +4,6 @@ from src.services.database import AsyncSessionLocal
 
 from src.core.tenant_database import get_tenant_session
 
-from src.core.tenant_database import get_tenant_session
-
 # IMPORT MODELS
 
 from src.models.company import Company
@@ -39,12 +37,13 @@ async def copy_master_data(database_name: str):
             for company in companies:
 
                 tenant_company = Company(
-                    companyCode=company.companyCode, companyName=company.companyName
+                    companyCode=company.companyCode,
+                    companyName=company.companyName,
                 )
 
                 tenant_db.add(tenant_company)
-                
-                await tenant_db.commit()
+
+            await tenant_db.commit()
 
             # =========================
             # COPY ROLE
@@ -69,11 +68,11 @@ async def copy_master_data(database_name: str):
                 )
 
                 tenant_db.add(tenant_role)
-                
-                await tenant_db.commit()
+
+            await tenant_db.commit()
 
             # =========================
-            # COPY Permission
+            # COPY PERMISSION
             # =========================
 
             permission_result = await master_db.execute(select(Permission))
@@ -97,129 +96,147 @@ async def copy_master_data(database_name: str):
                 )
 
                 tenant_db.add(tenant_permission)
-                
-                await tenant_db.commit()
+
+            await tenant_db.commit()
 
             # =========================
-            # COPY PermissionAction
+            # COPY PERMISSION ACTION
             # =========================
 
-            permissionAction_result = await master_db.execute(select(PermissionAction))
+            permission_action_result = await master_db.execute(select(PermissionAction))
 
-            permissionActions = permissionAction_result.scalars().all()
+            permission_actions = permission_action_result.scalars().all()
 
-            for permissionAction in permissionActions:
+            for permission_action in permission_actions:
 
-                tenant_permissionAction = PermissionAction(
-                    permissionActionID=permissionAction.permissionActionID,
-                    actionName=permissionAction.actionName,
-                    actionKey=permissionAction.actionKey,
-                    isActive=permissionAction.isActive,
-                    createdBy=permissionAction.createdBy,
-                    createdDate=permissionAction.createdDate,
-                    updatedBy=permissionAction.updatedBy,
-                    updatedDate=permissionAction.updatedDate,
+                tenant_permission_action = PermissionAction(
+                    permissionActionID=permission_action.permissionActionID,
+                    actionName=permission_action.actionName,
+                    actionKey=permission_action.actionKey,
+                    isActive=permission_action.isActive,
+                    createdBy=permission_action.createdBy,
+                    createdDate=permission_action.createdDate,
+                    updatedBy=permission_action.updatedBy,
+                    updatedDate=permission_action.updatedDate,
                 )
 
-                tenant_db.add(tenant_permissionAction)
+                tenant_db.add(tenant_permission_action)
 
-                await tenant_db.commit()
+            await tenant_db.commit()
+
             # =========================
-            # COPY RolePermissionAction
+            # COPY ROLE PERMISSION ACTION
             # =========================
 
-            roleermissionAction_result = await master_db.execute(
+            role_permission_action_result = await master_db.execute(
                 select(RolePermissionAction)
             )
 
-            rolePermissionActions = roleermissionAction_result.scalars().all()
+            role_permission_actions = role_permission_action_result.scalars().all()
 
-            for rolePermissionAction in rolePermissionActions:
+            for role_permission_action in role_permission_actions:
 
-                tenant_rolePermissionAction = RolePermissionAction(
-                    rolePermissionActionID=rolePermissionAction.rolePermissionActionID,
-                    roleID=rolePermissionAction.roleID,
-                    permissionID=rolePermissionAction.permissionID,
-                    permissionActionID=rolePermissionAction.permissionActionID,
-                    isAllowed=rolePermissionAction.isAllowed,
-                    createdBy=rolePermissionAction.createdBy,
-                    createdDate=rolePermissionAction.createdDate,
-                    updatedBy=rolePermissionAction.updatedBy,
-                    updatedDate=rolePermissionAction.updatedDate,
+                tenant_role_permission_action = RolePermissionAction(
+                    rolePermissionActionID=role_permission_action.rolePermissionActionID,
+                    roleID=role_permission_action.roleID,
+                    permissionID=role_permission_action.permissionID,
+                    permissionActionID=role_permission_action.permissionActionID,
+                    isAllowed=role_permission_action.isAllowed,
+                    createdBy=role_permission_action.createdBy,
+                    createdDate=role_permission_action.createdDate,
+                    updatedBy=role_permission_action.updatedBy,
+                    updatedDate=role_permission_action.updatedDate,
                 )
 
-                tenant_db.add(tenant_rolePermissionAction)
-
-                await tenant_db.commit()
-
-            # =========================
-            # Copy ControlItem
-            # =========================
-
-            controlItem_result = await master_db.execute(select(ControlItem))
-
-            controlItems = controlItem_result.scalars().all()
-
-            for controlItem in controlItems:
-
-                tenant_controlItem = ControlItem(
-                    controlItemCode=controlItem.controlItemCode,
-                    controlItemName=controlItem.controlItemName,
-                    accountCategory=controlItem.accountCategory,
-                    financialStatementType=controlItem.financialStatementType,
-                    isActive=controlItem.isActive,
-                )
-
-            tenant_db.add(tenant_controlItem)
+                tenant_db.add(tenant_role_permission_action)
 
             await tenant_db.commit()
 
             # =========================
-            # Copy ReportingItem
+            # COPY CONTROL ITEM
             # =========================
 
-            reportingItem_result = await master_db.execute(select(ReportingItem))
+            control_item_result = await master_db.execute(select(ControlItem))
 
-            reportingItems = reportingItem_result.scalars().all()
+            control_items = control_item_result.scalars().all()
 
-            for reportingItem in reportingItems:
-
-                tenant_reportingItem = ReportingItem(
-                    reportingItemCode=reportingItem.reportingItemCode,
-                    reportingItemName=reportingItem.reportingItemName,
-                    controlItemCode=reportingItem.controlItemCode,
+            tenant_db.add_all([
+                ControlItem(
+                    controlItemCode=i.controlItemCode,
+                    controlItemName=i.controlItemName,
+                    accountCategory=i.accountCategory,
+                    financialStatementType=i.financialStatementType,
+                    isActive=i.isActive,
                 )
-
-            tenant_db.add(tenant_reportingItem)
+                for i in control_items
+            ])
 
             await tenant_db.commit()
+            tenant_db.expunge_all()
 
             # =========================
-            # Copy DetailItem
+            # COPY REPORTING ITEM
             # =========================
 
-            detailItem_result = await master_db.execute(select(DetailItem))
+            reporting_item_result = await master_db.execute(select(ReportingItem))
 
-            detailItems = detailItem_result.scalars().all()
+            reporting_items = reporting_item_result.scalars().all()
 
-            for detailItem in detailItems:
-
-                tenant_detailItem = DetailItem(
-                    detailItemCode=detailItem.detailItemCode,
-                    detailItemName=detailItem.detailItemName,
-                    reportingItemCode=detailItem.reportingItemCode,
-                    normalBalance=detailItem.normalBalance,
-                    isActive=detailItem.isActive,
-                    loadType=detailItem.loadType,
+            tenant_db.add_all([
+                ReportingItem(
+                    reportingItemCode=i.reportingItemCode,
+                    reportingItemName=i.reportingItemName,
+                    controlItemCode=i.controlItemCode,
                 )
-
-            tenant_db.add(tenant_detailItem)
+                for i in reporting_items
+            ])
 
             await tenant_db.commit()
+            tenant_db.expunge_all()
+
+            # =========================
+            # DEBUG REPORTING ITEMS
+            # =========================
+
+            check_result = await tenant_db.execute(select(ReportingItem))
+
+            inserted_reporting_items = check_result.scalars().all()
+
+            print(
+                "Reporting Items Count:",
+                len(inserted_reporting_items),
+            )
+
+            # =========================
+            # COPY DETAIL ITEM
+            # =========================
+
+            detail_item_result = await master_db.execute(select(DetailItem))
+
+            detail_items = detail_item_result.scalars().all()
+
+            tenant_db.add_all([
+                DetailItem(
+                    detailItemCode=i.detailItemCode,
+                    detailItemName=i.detailItemName,
+                    reportingItemCode=i.reportingItemCode,
+                    normalBalance=i.normalBalance,
+                    isActive=i.isActive,
+                    loadType=i.loadType,
+                )
+                for i in detail_items
+            ])
+
+            await tenant_db.commit()
+            tenant_db.expunge_all()
+
+            print("Master data copied successfully")
 
         except Exception as e:
 
             await tenant_db.rollback()
+
+            print("Seed Data Error:", str(e))
 
             raise e
 
