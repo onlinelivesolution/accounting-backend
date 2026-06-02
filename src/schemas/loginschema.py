@@ -31,7 +31,8 @@ class LoginResponse(BaseModel):
     
 class OTPVerifyRequest(BaseModel):
     userID: int
-    otpCode: str
+    tenant: str
+    otpCode: str    
 
 
 class OTPVerifyResponse(BaseModel):

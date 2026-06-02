@@ -23,7 +23,7 @@ class TenantRepository(ITenantRepository):
 
         # Create tables
         await create_tenant_tables(database_name)
-        await copy_master_data(database_name)
+        await copy_master_data(database_name, request.email)
 
         # Save Tenant Info
         tenant = Tenant(

@@ -1,28 +1,16 @@
-# common/utils/jwt_handler.py
-
-from jose import jwt
 from datetime import datetime, timedelta
+from jose import jwt
 
-# 🔐 SECRET KEY
-SECRET_KEY = "my_super_secret_erp_key_2026"
-
-# 🔐 ALGORITHM
+SECRET_KEY = "YOUR_SECRET_KEY"
 ALGORITHM = "HS256"
 
-# 🔐 TOKEN EXPIRE
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict):
 
     to_encode = data.copy()
 
-    expire = datetime.utcnow() + (
-        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
+    expire = datetime.utcnow() + timedelta(hours=8)
 
     to_encode.update({"exp": expire})
 
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-    return encoded_jwt
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

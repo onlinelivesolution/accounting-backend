@@ -1,121 +1,147 @@
 from datetime import datetime, timedelta
+
 from fastapi import HTTPException
-from requests import request
+
 from common.utils.jwt_handler import create_access_token
 from common.utils.security import verify_password
 from common.utils.otp_utils import generate_otp
 
 from src.models.userotp import UserOTP
-from common.utils.sms import send_sms
-from src.schemas.loginschema import LoginRequest, LoginOTPResponse
+
+from src.core.tenant_session import get_tenant_db_by_email
+
+from src.repositories.login_repository import LoginRepository
 
 
 class LoginService:
-
     def __init__(self, repository):
         self.repository = repository
 
-    async def login(self, request: LoginRequest) -> LoginOTPResponse:
+    async def login(self, request):
 
-        user = await self.repository.get_user_by_username(request.userName)
+        # =====================================
+        # GET TENANT DB
+        # =====================================
 
-        if not user:
+        tenant_db, database_name = await get_tenant_db_by_email(request.userName)
 
-            raise HTTPException(status_code=401, detail="Invalid username")
+        if not tenant_db:
 
-        # 🔴 CHECK LOCKED USER (IMPORTANT SECURITY FIX)
-        if user.lockedUntil and user.lockedUntil > datetime.utcnow():
+            raise HTTPException(status_code=404, detail="Tenant not found")
 
-            raise HTTPException(status_code=403, detail="User is locked. Try later.")
+        try:
 
-        # ==============================
-        # PASSWORD VERIFY
-        # ==============================
+            # =====================================
+            # CREATE TENANT REPOSITORY
+            # =====================================
 
-        is_valid, needs_rehash = verify_password(request.password, user.passwordHash)
+            repository = LoginRepository(tenant_db)
 
-        if not is_valid:
+            # =====================================
+            # GET USER
+            # =====================================
 
-            # 🔴 increase failed attempts
-            await self.repository.increment_failed_attempts(user.userID)
+            user = await repository.get_user_by_username(request.userName)
 
-            # optional lock after 5 attempts
-        failed_attempts = user.failedLoginAttempts or 0
+            if not user:
 
-        if failed_attempts >= 4:
-            await self.repository.lock_user(user.userID)
+                raise HTTPException(status_code=401, detail="Invalid username")
 
-            raise HTTPException(status_code=401, detail="Invalid password")
+            # =====================================
+            # VERIFY PASSWORD
+            # =====================================
 
-        # reset failed attempts on success
-        await self.repository.reset_failed_attempts(user.userID)
+            is_valid, needs_rehash = verify_password(
+                request.password, user.passwordHash
+            )
 
-        # auto upgrade hash
-        if needs_rehash:
+            if not is_valid:
 
-            from common.utils.security import hash_password
+                await repository.increment_failed_attempts(user.userID)
 
-            new_hash = hash_password(request.password)
+                raise HTTPException(status_code=401, detail="Invalid password")
 
-            await self.repository.update_password_hash(user.userID, new_hash)
+            # =====================================
+            # RESET FAILED ATTEMPTS
+            # =====================================
 
-        # ==============================
-        # OTP GENERATION
-        # ==============================
+            await repository.reset_failed_attempts(user.userID)
 
-        otp_code = generate_otp()
+            # =====================================
+            # GENERATE OTP
+            # =====================================
 
-        expiry = datetime.utcnow() + timedelta(minutes=5)
+            otp_code = generate_otp()
 
-        otp = UserOTP(
-            userID=user.userID, otpCode=otp_code, expiryTime=expiry, isUsed=False
-        )
+            expiry = datetime.utcnow() + timedelta(minutes=5)
 
-        await self.repository.save_otp(otp)
-        
-        
-        print("===================================")
-        print("OTP CODE:", otp_code)
-        print("===================================")
+            otp = UserOTP(
+                userID=user.userID, otpCode=otp_code, expiryTime=expiry, isUsed=False
+            )
 
-        return {
-            "message": "OTP sent successfully",
-            "userID": user.userID,
-            "otp": otp_code   # TEMPORARY FOR DEVELOPMENT
-        }
+            await repository.save_otp(otp)
 
-        # print("OTP:", otp_code)
+            print("===================================")
+            print("OTP CODE:", otp_code)
+            print("===================================")
 
-        # return LoginOTPResponse(message="OTP sent successfully", userID=user.userID)
+            return {
+                "message": "OTP sent successfully",
+                "userID": user.userID,
+                "tenant": database_name,
+                "otp": otp_code,
+            }
+
+        finally:
+
+            await tenant_db.close()
+
 
     async def verify_otp(self, request):
 
-        otp = await self.repository.get_valid_otp(request.userID, request.otpCode)
+        tenant_db, database_name = await get_tenant_db_by_email(
+            request.tenant
+        )
 
-        if not otp:
-            raise HTTPException(status_code=401, detail="Invalid OTP")
+        if not tenant_db:
+            raise HTTPException(status_code=404, detail="Tenant not found")
 
-        if otp.expiryTime < datetime.utcnow():
+        try:
 
-            raise HTTPException(status_code=401, detail="OTP expired")
+            repository = LoginRepository(tenant_db)
 
-        await self.repository.mark_otp_used(otp.otpID)
+            otp = await repository.get_valid_otp(
+                request.userID,
+                request.otpCode
+            )
 
-        user = await self.repository.get_user_by_id(request.userID)
+            if not otp:
+                raise HTTPException(status_code=401, detail="Invalid OTP")
 
-        token = create_access_token({"userID": user.userID, "roleID": user.roleID})
+            if otp.expiryTime < datetime.utcnow():
+                raise HTTPException(status_code=401, detail="OTP expired")
 
-        return {
-            "token": token,
-            "user": {
-                "userID": user.userID,
-                "userName": user.userName,
-                "roleID": user.roleID,
-            },
-        }
+            await repository.mark_otp_used(otp.otpID)
 
-    async def get_permissions(self, role_id: int):
+            user = await repository.get_user_by_id(request.userID)
 
-        permissions = await self.repository.get_user_permissions(role_id)
+            token = create_access_token(
+                {
+                    "userID": user.userID,
+                    "roleID": user.roleID,
+                    "tenant": database_name,
+                }
+            )
 
-        return permissions
+            return {
+                "token": token,
+                "tenant": database_name,
+                "user": {
+                    "userID": user.userID,
+                    "userName": user.userName,
+                    "roleID": user.roleID,
+                },
+            }
+
+        finally:
+            await tenant_db.close()

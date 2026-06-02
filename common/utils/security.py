@@ -1,39 +1,57 @@
-# common/utils/security.py
-from passlib.context import CryptContext
-from passlib.exc import UnknownHashError
+import bcrypt
 from typing import Tuple
 
-pwd_context = CryptContext(
-    schemes=["argon2", "bcrypt"],  # add argon2 first (primary)
-    deprecated="auto"
-)
+# =====================================
+# HASH PASSWORD
+# =====================================
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+
+    if not isinstance(password, str):
+        raise ValueError(f"Password must be string, got {type(password)}")
+
+    password = password.strip()
+
+    if not password:
+        raise ValueError("Password cannot be empty")
+
+    # bcrypt limit safety
+    password = password[:72]
+
+    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+
+    return hashed.decode("utf-8")
+
+
+# =====================================
+# VERIFY PASSWORD
+# =====================================
 
 
 def verify_password(plain_password: str, hashed_password: str) -> Tuple[bool, bool]:
-    """
-    Verify password and return (is_valid, needs_rehash)
-    - If hash is old/plaintext, verify and flag to upgrade.
-    """
-    if not hashed_password:
-        return False, False
 
     try:
-        # Verify with Argon2 (normal)
-        is_valid = pwd_context.verify(plain_password, hashed_password)
-        # Check if rehashing is recommended (e.g. config changed)
-        needs_rehash = pwd_context.needs_update(hashed_password)
+
+        if not plain_password or not hashed_password:
+            return False, False
+
+        plain_password = str(plain_password).strip()
+
+        # bcrypt safe limit
+        plain_password = plain_password[:72]
+
+        is_valid = bcrypt.checkpw(
+            plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+        )
+
+        # no rehash logic for now
+        needs_rehash = False
+
         return is_valid, needs_rehash
 
-    except UnknownHashError:
-        # Old plaintext or unrecognized format
-        if plain_password == hashed_password:
-            # valid, but must rehash
-            return True, True
-        return False, False
+    except Exception as e:
 
-    except Exception:
+        print("VERIFY ERROR:", str(e))
+
         return False, False
