@@ -326,20 +326,6 @@ def get_sales_invoice_service(
     )
 
 
-# def get_sales_invoice_service(
-#     repository: ISalesInvoiceRepository = Depends(get_sales_invoice_repository),
-#     journal_service: ICommonJournalService = Depends(get_common_journal_service),
-#     email_service: IEmailService = Depends(get_email_service),
-#     pdf_service: IPdfService = Depends(get_pdf_service),
-# ) -> ISalesInvoiceService:
-
-#     return SalesInvoiceService(
-#         repository,
-#         journal_service,
-#         email_service,
-#         pdf_service
-#     )
-
 
 def get_balance_sheet_service(
     repository: IBalanceSheetRepository = Depends(get_balance_sheet_repository),

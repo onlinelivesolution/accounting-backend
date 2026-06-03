@@ -74,6 +74,7 @@ async def create_admin_user(tenant_db, email: str):
         userName=email,
         email=email,
         passwordHash=hashed_password,
+        roleID=1,
         isActive=True,
     )
 

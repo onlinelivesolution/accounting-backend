@@ -12,3 +12,9 @@ async def get_tenant_db_by_email(email: str):
     tenant_db = get_tenant_session(database_name)
 
     return tenant_db, database_name
+
+async def get_tenant_db_by_database(database_name: str):
+
+    tenant_db = get_tenant_session(database_name)
+
+    return tenant_db, database_name

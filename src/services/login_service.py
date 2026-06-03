@@ -9,7 +9,7 @@ from common.utils.otp_utils import generate_otp
 from src.models.userotp import UserOTP
 
 from src.core.tenant_session import get_tenant_db_by_email
-
+from src.core.tenant_session import get_tenant_db_by_database
 from src.repositories.login_repository import LoginRepository
 
 
@@ -81,9 +81,7 @@ class LoginService:
 
             await repository.save_otp(otp)
 
-            print("===================================")
-            print("OTP CODE:", otp_code)
-            print("===================================")
+            print("DATABASE NAME:", database_name)
 
             return {
                 "message": "OTP sent successfully",
@@ -99,7 +97,7 @@ class LoginService:
 
     async def verify_otp(self, request):
 
-        tenant_db, database_name = await get_tenant_db_by_email(
+        tenant_db, database_name = await get_tenant_db_by_database(
             request.tenant
         )
 
@@ -124,6 +122,12 @@ class LoginService:
             await repository.mark_otp_used(otp.otpID)
 
             user = await repository.get_user_by_id(request.userID)
+            
+            print("===================================")
+            print("USER ID:", user.userID)
+            print("USERNAME:", user.userName)
+            print("ROLE ID:", user.roleID)
+            print("===================================")
 
             token = create_access_token(
                 {
@@ -145,3 +149,7 @@ class LoginService:
 
         finally:
             await tenant_db.close()
+    
+    async def get_permissions(self, role_id: int):
+
+        return await self.repository.get_user_permissions(role_id)
