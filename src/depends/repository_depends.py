@@ -1,8 +1,8 @@
 from fastapi import Depends
 from common.db.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.depends.tenant_depends import get_tenant_db
+from src.core.tenant_dependency import get_tenant_db
+# from src.depends.tenant_depends import get_tenant_db
 from src.repositories.login_repository import LoginRepository
 async def get_login_repository(tenant_db=Depends(get_tenant_db)):
 
@@ -188,11 +188,15 @@ from src.repositories.interfaces.isalesorder_repository import ISalesOrderReposi
 from src.repositories.salesorder_repository import SalesOrderRepository
 
 
-def get_sales_order_repository(
-    db: AsyncSession = Depends(get_db),
-) -> ISalesOrderRepository:
-    return SalesOrderRepository(db)
+# def get_sales_order_repository(
+#     db: AsyncSession = Depends(get_db),
+# ) -> ISalesOrderRepository:
+#     return SalesOrderRepository(db)
 
+def get_sales_order_repository(
+    db: AsyncSession = Depends(get_tenant_db)
+):
+    return SalesOrderRepository(db)
 
 def get_account_report_repository(
     db: AsyncSession = Depends(get_db),
