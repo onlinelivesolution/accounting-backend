@@ -2,7 +2,6 @@ from fastapi import Depends
 from common.db.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.tenant_dependency import get_tenant_db
-# from src.depends.tenant_depends import get_tenant_db
 from src.repositories.login_repository import LoginRepository
 async def get_login_repository(tenant_db=Depends(get_tenant_db)):
 
