@@ -1,5 +1,5 @@
 from sqlalchemy import select, text
-
+from datetime import datetime
 from src.services.database import AsyncSessionLocal
 from src.core.tenant_database import get_tenant_session
 
@@ -72,10 +72,14 @@ async def create_admin_user(tenant_db, email: str):
     # CREATE USER
     admin_user = UserInfo(
         userName=email,
+        fullName="Admin User",
         email=email,
         passwordHash=hashed_password,
         roleID=1,
         isActive=True,
+        isSuperAdmin=True,
+        createdBy='superadmin',
+        createdDate=datetime.utcnow(),
     )
 
     tenant_db.add(admin_user)

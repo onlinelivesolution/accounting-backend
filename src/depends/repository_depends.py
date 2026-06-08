@@ -315,3 +315,5 @@ def get_salarydetail_repository(
     db: AsyncSession = Depends(get_db),
 ) -> ISalaryDetailRepository:
     return SalaryDetailRepository(db)
+
+

@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from src.services.database import Base
 from src.models.role_model import Role
+from sqlalchemy.sql import func
 
 
 class UserInfo(Base):
@@ -17,7 +18,7 @@ class UserInfo(Base):
     isSuperAdmin = Column(Boolean, default=False)
     companyCode = Column(String(2))
     createdBy = Column(String(50))
-    createdDate = Column(DateTime)
+    createdDate = Column(DateTime,server_default=func.now(), nullable=False)
     updatedBy = Column(String(50))
     updatedDate = Column(DateTime)
     failedLoginAttempts = Column(Integer, default=0)

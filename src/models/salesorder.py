@@ -7,7 +7,7 @@ class SalesOrder(Base):
     __tablename__ = "SalesOrder"
     
     salesOrderID       = Column(Integer, primary_key=True, index=True) 
-    quotationID        = Column(Integer, nullable=False)
+    quotationID        = Column(Integer, nullable=True)
     salesOrderNo       = Column(String(30), nullable=False)
     salesOrderDate     = Column(Date, nullable=False)
     customerID         = Column(Integer, ForeignKey("Customer.customerID"))   
@@ -17,7 +17,7 @@ class SalesOrder(Base):
     totalAmount        = Column(Numeric(18, 2))
     status             = Column(String(20))
     expireDate         = Column(Date, nullable=False)
-    remarks            = Column(String(255), nullable=False)
+    remarks            = Column(String(255), nullable=True)
     createdBy          = Column(String(50), nullable=False)    
     createdDate        = Column(DateTime,server_default=func.now(), nullable=False)
     updatedBy          = Column(String(50), nullable=True)

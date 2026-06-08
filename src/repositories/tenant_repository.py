@@ -3,7 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.repositories.interfaces.itenant_repository import ITenantRepository
 
 from src.schemas.tenant_schema import TenantCreate
-from src.core.tenant_table_creator import create_tenant_tables
+
+# from src.core.tenant_table_creator import create_tenant_tables
+from src.core.tenant_schema_creator import create_tenant_schema
 from src.core.tenant_seed_data import copy_master_data
 
 from src.models.tenant import Tenant
@@ -18,22 +20,46 @@ class TenantRepository(ITenantRepository):
 
     async def register_tenant(self, request: TenantCreate):
 
-        # Create Database
-        database_name = await create_tenant_database(request.email)
+        try:
 
-        # Create tables
-        await create_tenant_tables(database_name)
-        await copy_master_data(database_name, request.email)
+            # ==================================
+            # CREATE DATABASE
+            # ==================================
 
-        # Save Tenant Info
-        tenant = Tenant(
-            companyName=request.companyName,
-            email=request.email,
-            databaseName=database_name,
-        )
+            database_name = await create_tenant_database(request.email)
 
-        self.db.add(tenant)
+            # ==================================
+            # CREATE ALL TABLES
+            # ==================================
 
-        await self.db.commit()
+            await create_tenant_schema(database_name)
 
-        return {"databaseName": database_name}
+            # ==================================
+            # SEED DATA
+            # ==================================
+
+            await copy_master_data(database_name, request.email)
+
+            # ==================================
+            # SAVE TENANT INFO
+            # ==================================
+
+            tenant = Tenant(
+                companyName=request.companyName,
+                email=request.email,
+                databaseName=database_name,
+            )
+
+            self.db.add(tenant)
+
+            await self.db.commit()
+
+            return {
+                "databaseName": database_name,
+                "message": "Tenant created successfully",
+            }
+
+        except Exception:
+
+            await self.db.rollback()
+            raise
