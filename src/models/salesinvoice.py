@@ -17,7 +17,7 @@ class SalesInvoice(Base):
     totalAmount        = Column(Numeric(18, 2))
     status             = Column(String(20))
     paymentStatus      = Column(String(20))
-    remarks            = Column(String(255), nullable=False)
+    remarks            = Column(String(255), nullable=True)
     createdBy          = Column(String(50), nullable=False)    
     createdDate        = Column(DateTime,server_default=func.now(), nullable=False)
     updatedBy          = Column(String(50), nullable=True)

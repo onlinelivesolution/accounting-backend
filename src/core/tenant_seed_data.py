@@ -15,6 +15,8 @@ from src.models.role_permission_action_model import (
 from src.models.controlitem import ControlItem
 from src.models.reportingitem import ReportingItem
 from src.models.detailitem import DetailItem
+from src.models.customers import Customer
+from src.models.lineitem import LineItem
 
 # USER MODEL
 from src.models.user_model import UserInfo
@@ -78,7 +80,7 @@ async def create_admin_user(tenant_db, email: str):
         roleID=1,
         isActive=True,
         isSuperAdmin=True,
-        createdBy='superadmin',
+        createdBy="superadmin",
         createdDate=datetime.utcnow(),
     )
 
@@ -129,6 +131,10 @@ async def copy_master_data(database_name: str, email: str):
 
             await tenant_db.execute(text("DELETE FROM Company"))
 
+            await tenant_db.execute(text("DELETE FROM Customer"))
+
+            await tenant_db.execute(text("DELETE FROM LineItem"))
+
             await tenant_db.commit()
 
             print("OLD SEED DATA DELETED")
@@ -154,6 +160,92 @@ async def copy_master_data(database_name: str, email: str):
             await tenant_db.commit()
 
             print("Company Inserted:", len(companies))
+
+            # ====================================
+            # COPY CUSTOMER
+            # ====================================
+
+            customer_result = await master_db.execute(select(Customer))
+
+            customers = customer_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    Customer(
+                        customerID=i.customerID,
+                        customerName=i.customerName,
+                        creditLimit=i.creditLimit,
+                        vatReference=i.vatReference,
+                        address=i.address,
+                        phone=i.phone,
+                        email=i.email,
+                        postBox=i.postBox,
+                        faxNumber=i.faxNumber,
+                        city=i.city,
+                        country=i.country,
+                        createdBy=i.createdBy,
+                        createdDate=i.createdDate,
+                        updatedBy=i.updatedBy,
+                        updatedDate=i.updatedDate,
+                        accountNumber=i.accountNumber,
+                        companyCode=i.companyCode,
+                        shippingAddress=i.shippingAddress,
+                        billingAddress=i.billingAddress,
+                        contactPerson=i.contactPerson,
+                        isActive=i.isActive,
+                    )
+                    for i in customers
+                ]
+            )
+
+            await tenant_db.commit()
+
+            print("Customer Inserted:", len(customers))
+
+            # ====================================
+            # COPY LINE ITEM
+            # ====================================
+
+            line_item_result = await master_db.execute(select(LineItem))
+
+            line_items = line_item_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    LineItem(
+                        itemID=i.itemID,
+                        itemCode=i.itemCode,
+                        itemName=i.itemName,
+                        unitPrice=i.unitPrice,
+                        supplierProductCode=i.supplierProductCode,
+                        description=i.description,
+                        productBrandID=i.productBrandID,
+                        productTypeID=i.productTypeID,
+                        productSizeID=i.productSizeID,
+                        productModelID=i.productModelID,
+                        productColorID=i.productColorID,
+                        packSize=i.packSize,
+                        supplierID=i.supplierID,
+                        reorderQuantity=i.reorderQuantity,
+                        isRawMeterial=i.isRawMeterial,
+                        isFinishedProduct=i.isFinishedProduct,
+                        isActive=i.isActive,
+                        accMasterCode=i.accMasterCode,
+                        companyCode=i.companyCode,
+                        activityCenterCode=i.activityCenterCode,
+                        respCenterCode=i.respCenterCode,
+                        vAT=i.vAT,
+                        controlItemCode=i.controlItemCode,
+                        reportingItemCode=i.reportingItemCode,
+                        detailItemCode=i.detailItemCode,
+                    )
+                    for i in line_items
+                ]
+            )
+
+            await tenant_db.commit()
+
+            print("Line Item Inserted:", len(line_items))
 
             # ====================================
             # COPY ROLE

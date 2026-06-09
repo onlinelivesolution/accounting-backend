@@ -8,8 +8,7 @@ async def get_login_repository(tenant_db=Depends(get_tenant_db)):
     return LoginRepository(tenant_db)
 
 
-from src.repositories.interfaces.icommon_repository import ICommonRepository
-from src.repositories.common_repository import CommonRepository
+
 
 from src.repositories.interfaces.icommondropdown_repository import (
     ICommonDropdownRepository,
@@ -145,15 +144,6 @@ def get_customer_receipt_repository(
     return CustomerReceiptRepository(db)
 
 
-from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
-from src.repositories.salesinvoice_repository import SalesInvoiceRepository
-
-
-def get_sales_invoice_repository(
-    db: AsyncSession = Depends(get_db),
-) -> ISalesInvoiceRepository:
-    return SalesInvoiceRepository(db)
-
 
 from src.repositories.interfaces.iemail_repository import IEmailRepository
 from src.repositories.email_repository import EmailRepository
@@ -182,6 +172,27 @@ def get_accounting_rule_repository(
 ) -> IAccountingRuleRepository:
     return AccountingRuleRepository(db)
 
+from src.repositories.interfaces.icommon_repository import ICommonRepository
+from src.repositories.common_repository import CommonRepository
+
+def get_common_repository(
+    db: AsyncSession = Depends(get_tenant_db)
+):
+    return CommonRepository(db)
+
+from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
+from src.repositories.salesinvoice_repository import SalesInvoiceRepository
+
+
+# def get_sales_invoice_repository(
+#     db: AsyncSession = Depends(get_db),
+# ) -> ISalesInvoiceRepository:
+#     return SalesInvoiceRepository(db)
+
+def get_sales_invoice_repository(
+    db: AsyncSession = Depends(get_tenant_db)
+):
+    return SalesInvoiceRepository(db)
 
 from src.repositories.interfaces.isalesorder_repository import ISalesOrderRepository
 from src.repositories.salesorder_repository import SalesOrderRepository
@@ -241,11 +252,6 @@ def get_commonjournal_repository(
     db: AsyncSession = Depends(get_db),
 ) -> ICommonJournalRepository:
     return CommonJournalRepository(db)
-
-
-def get_common_repository(db: AsyncSession = Depends(get_db)) -> ICommonRepository:
-    return CommonRepository(db)
-
 
 def get_login_repository(db: AsyncSession = Depends(get_db)) -> ILoginRepository:
     return LoginRepository(db)
