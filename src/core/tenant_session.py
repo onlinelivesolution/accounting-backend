@@ -1,9 +1,8 @@
-from src.core.tenant_database import get_tenant_session
 from src.core.tenant_resolver import get_database_by_email
+from src.core.tenant_session_factory import get_tenant_session
 
 
 async def get_tenant_db_by_email(email: str):
-
     database_name = await get_database_by_email(email)
 
     if not database_name:
@@ -13,8 +12,8 @@ async def get_tenant_db_by_email(email: str):
 
     return tenant_db, database_name
 
-async def get_tenant_db_by_database(database_name: str):
 
+async def get_tenant_db_by_database(database_name: str):
     tenant_db = get_tenant_session(database_name)
 
     return tenant_db, database_name

@@ -87,7 +87,7 @@ class SalesInvoiceItemUpdateRequest(BaseModel):
         from_attributes = True
 
 class SalesInvoiceUpdateRequest(BaseModel):
-    salesOrderDate: date
+    salesInvoiceDate: Optional[datetime] = None
     expireDate: date | None = None
     customerID: int = Field(..., gt=0)
     exclusiveAmount: float = Field(..., ge=0)

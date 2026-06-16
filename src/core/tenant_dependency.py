@@ -1,33 +1,11 @@
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-
-from common.utils.jwt_handler import decode_access_token
-
-from src.core.tenant_database import get_tenant_session
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+from src.core.auth_dependency import get_current_user
 
 
-async def get_tenant_db(token: str = Depends(oauth2_scheme)):
+async def get_current_tenant(user: dict = Depends(get_current_user)):
+    tenant = user.get("tenant")
 
-    payload = decode_access_token(token)
+    if not tenant:
+        raise HTTPException(status_code=401, detail="Tenant missing")
 
-    if not payload:
-
-        raise HTTPException(status_code=401, detail="Invalid Token")
-
-    database_name = payload.get("tenant")
-
-    if not database_name:
-
-        raise HTTPException(status_code=401, detail="Tenant Missing")
-
-    db = get_tenant_session(database_name)
-
-    try:
-
-        yield db
-
-    finally:
-
-        await db.close()
+    return tenant

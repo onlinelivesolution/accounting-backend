@@ -13,24 +13,27 @@ from src.schemas.salesinvoice_schema import SalesInvoiceCreateRequest
 from fastapi import HTTPException
 from datetime import datetime
 
+
 class SalesInvoiceService(ISalesInvoiceService):
 
     # def __init__(self, repository: ISalesInvoiceRepository):
     #     self.repository = repository
-    
+
     def __init__(
         self,
         repository: ISalesInvoiceRepository,
         journal_service: ICommonJournalService,
         email_service: IEmailService,
-        pdf_service: IPdfService
+        pdf_service: IPdfService,
     ):
         self.repository = repository
         self.journal_service = journal_service
         self.email_service = email_service
         self.pdf_service = pdf_service
-    
-    async def create_sales_invoice(self, request: SalesInvoiceCreateRequest) -> SalesInvoice:
+
+    async def create_sales_invoice(
+        self, request: SalesInvoiceCreateRequest
+    ) -> SalesInvoice:
         salesinvoice = SalesInvoice(
             salesOrderID=request.salesOrderID,
             salesInvoiceNo=request.salesInvoiceNo,
@@ -45,7 +48,7 @@ class SalesInvoiceService(ISalesInvoiceService):
             createdDate=datetime.utcnow(),
             status="Draft",
             remarks=request.remarks,
-            items=[]
+            items=[],
         )
 
         for item in request.items:
@@ -58,12 +61,12 @@ class SalesInvoiceService(ISalesInvoiceService):
                     exclusiveAmount=item.exclusiveAmount,
                     discountAmount=item.discountAmount,
                     vatAmount=item.vatAmount,
-                    totalAmount=item.totalAmount
+                    totalAmount=item.totalAmount,
                 )
             )
 
         return await self.repository.create_sales_invoice(salesinvoice)
-    
+
     async def update_sales_invoice(self, salesinvoice_id: int, request):
         """
         Business logic:
@@ -73,27 +76,29 @@ class SalesInvoiceService(ISalesInvoiceService):
         4. Insert new detail rows
         """
 
-        # 🔹 1. Get existing order
+        # Get existing invoice
         sales_invoice = await self.repository.get_sales_invoice_by_id(salesinvoice_id)
+
         if not sales_invoice:
             return None
 
-        # 🔹 2. Update header fields
-        sales_invoice.salesInvoiceDate = request.salesOrderDate
+        # Update header
+        if request.salesInvoiceDate is not None:
+            sales_invoice.salesInvoiceDate = request.salesInvoiceDate
         sales_invoice.customerID = request.customerID
         sales_invoice.exclusiveAmount = request.exclusiveAmount
         sales_invoice.discountAmount = request.discountAmount
         sales_invoice.vatAmount = request.vatAmount
         sales_invoice.totalAmount = request.totalAmount
 
-        # 🔹 3. Delete existing details
+        # Delete old details
         await self.repository.db.execute(
             SalesInvoiceDetail.__table__.delete().where(
                 SalesInvoiceDetail.salesInvoiceID == salesinvoice_id
             )
         )
 
-        # 🔹 4. Insert new details
+        # Add new details
         for item in request.items:
             detail = SalesInvoiceDetail(
                 salesInvoiceID=salesinvoice_id,
@@ -106,28 +111,29 @@ class SalesInvoiceService(ISalesInvoiceService):
                 vatAmount=item.vatAmount,
                 totalAmount=item.totalAmount,
             )
+
             self.repository.db.add(detail)
 
-        # 🔹 5. Commit once
+        # Commit once
         await self.repository.db.commit()
 
-        # 🔹 6. Refresh header
+        # Refresh
         await self.repository.db.refresh(sales_invoice)
 
         return sales_invoice
 
     async def get_sales_invoice_by_id(self, salesInvoiceID: int):
         return await self.repository.get_sales_invoice_by_id(salesInvoiceID)
-    
+
     async def list_sales_invoice(self):
         return await self.repository.get_all_sales_invoice()
-    
+
     async def get_all_sales_invoice(self):
         return await self.repository.get_all_sales_invoice()
-    
+
     async def get_next_salesinvoice_no(self) -> str:
         return await self.repository.get_next_salesinvoice_no()
-    
+
     async def load_sales_invoice_table(self):
         salesinvoice = await self.repository.load_sales_invoice_table()
 
@@ -139,26 +145,18 @@ class SalesInvoiceService(ISalesInvoiceService):
                 "totalAmount": si.totalAmount,
                 "customerID": si.customerID,
                 "status": si.status,
-                "customerName": si.customer.customerName if si.customer else None
+                "customerName": si.customer.customerName if si.customer else None,
             }
             for si in salesinvoice
         ]
-    
-    
+
     async def get_filter_sales_invoice(
-        self,
-        filter_type: str,
-        salesinvoice_no: str | None,
-        page: int,
-        page_size: int
+        self, filter_type: str, salesinvoice_no: str | None, page: int, page_size: int
     ):
         return await self.repository.get_filter_sales_invoice(
-            filter_type,
-            salesinvoice_no,
-            page,
-            page_size
+            filter_type, salesinvoice_no, page, page_size
         )
-    
+
     async def update_sales_invoice_status(self, salesinvoice_id: int, status: str):
 
         sales_invoice = await self.repository.get_sales_invoice_by_id(salesinvoice_id)
@@ -173,7 +171,7 @@ class SalesInvoiceService(ISalesInvoiceService):
         await self.repository.db.commit()
 
         return sales_invoice
-    
+
     async def copy_sales_invoice(self, salesinvoice_id: int):
 
         # 1️⃣ Get existing invoice
@@ -182,7 +180,7 @@ class SalesInvoiceService(ISalesInvoiceService):
         if not invoice:
             return None
         sales_invoice_no = await self.repository.get_next_salesinvoice_no()
-        
+
         # 2️⃣ Create new invoice header
         new_invoice = SalesInvoice(
             salesInvoiceNo=sales_invoice_no,
@@ -192,11 +190,10 @@ class SalesInvoiceService(ISalesInvoiceService):
             discountAmount=invoice.discountAmount,
             vatAmount=invoice.vatAmount,
             totalAmount=invoice.totalAmount,
-            status="Draft",           
-            remarks=invoice.remarks, 
+            status="Draft",
+            remarks=invoice.remarks,
             createdBy="admin",
-            createdDate=datetime.utcnow()
-                       
+            createdDate=datetime.utcnow(),
         )
 
         await self.repository.create_sales_invoice(new_invoice)
@@ -213,7 +210,7 @@ class SalesInvoiceService(ISalesInvoiceService):
                 exclusiveAmount=item.exclusiveAmount,
                 discountAmount=item.discountAmount,
                 vatAmount=item.vatAmount,
-                totalAmount=item.totalAmount
+                totalAmount=item.totalAmount,
             )
 
             await self.repository.add_sales_invoice_detail(new_detail)
@@ -222,12 +219,14 @@ class SalesInvoiceService(ISalesInvoiceService):
         await self.repository.db.commit()
 
         return new_invoice
-    
+
     async def get_sales_order_dropdown(self):
         return await self.repository.get_sales_order_dropdown()
-    
+
     async def get_sales_order_for_sales_invoice(self, salesOrderID: int):
-        salesorder = await self.repository.get_sales_order_for_sales_invoice(salesOrderID)
+        salesorder = await self.repository.get_sales_order_for_sales_invoice(
+            salesOrderID
+        )
 
         if not salesorder:
             raise HTTPException(status_code=404, detail="Sales Order not found")
@@ -247,12 +246,12 @@ class SalesInvoiceService(ISalesInvoiceService):
                     "quantity": float(d.quantity),
                     "unitPrice": float(d.unitPrice),
                     "discountAmount": float(d.discountAmount),
-                    "lineTotal": float(d.lineTotal)
+                    "lineTotal": float(d.lineTotal),
                 }
                 for d in salesorder.items
-            ]
+            ],
         }
-    
+
     async def approve_sales_invoice(self, salesInvoiceID: int):
 
         invoice = await self.repository.get_sales_invoice_by_id(salesInvoiceID)
@@ -272,10 +271,10 @@ class SalesInvoiceService(ISalesInvoiceService):
         await self.repository.update(invoice)
 
         return {"message": "Approved successfully"}
-    
+
     async def update(self, invoice: SalesInvoice) -> SalesInvoice:
         return await self.repository.update(invoice)
-    
+
     async def send_invoice_email(self, request):
 
         invoice = await self.repository.get_sales_invoice_by_id(request.salesInvoiceID)
@@ -293,5 +292,5 @@ class SalesInvoiceService(ISalesInvoiceService):
             subject=request.subject,
             body=request.body,
             attachment_bytes=pdf_bytes,
-            filename=f"Invoice_{invoice.salesInvoiceNo}.pdf"
+            filename=f"Invoice_{invoice.salesInvoiceNo}.pdf",
         )

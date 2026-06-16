@@ -6,11 +6,11 @@ from sqlalchemy.sql import func
 class SalesInvoice(Base):
     __tablename__ = "SalesInvoice"
     
-    salesInvoiceID       = Column(Integer, primary_key=True, index=True) 
-    salesOrderID        = Column(Integer, nullable=True)
-    salesInvoiceNo       = Column(String(30), nullable=False)
+    salesInvoiceID     = Column(Integer, primary_key=True, index=True) 
+    salesOrderID       = Column(Integer, nullable=True)
+    salesInvoiceNo     = Column(String(30), nullable=False)
     customerID         = Column(Integer, ForeignKey("Customer.customerID"), nullable=False) 
-    salesInvoiceDate     = Column(Date, nullable=False)  
+    salesInvoiceDate   = Column(Date, nullable=False)  
     exclusiveAmount    = Column(Numeric(18, 2))
     discountAmount     = Column(Numeric(18, 2))
     vatAmount          = Column(Numeric(18, 2))

@@ -10,7 +10,7 @@ from src.core.tenant_seed_data import copy_master_data
 
 from src.models.tenant import Tenant
 
-from src.core.tenant_database import create_tenant_database
+from src.core.tenant_provision import create_tenant_database
 
 
 class TenantRepository(ITenantRepository):

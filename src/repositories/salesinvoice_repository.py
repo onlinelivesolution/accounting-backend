@@ -9,11 +9,12 @@ from src.models.salesinvoicedetail import SalesInvoiceDetail
 from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
 from common.generic.generic_repository import GenericRepository
 
+
 class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepository):
     def __init__(self, db: AsyncSession):
         super().__init__(SalesInvoice, db)
         self.db = db
-    
+
     async def create_sales_invoice(self, salesinvoice: SalesInvoice) -> SalesInvoice:
 
         self.db.add(salesinvoice)
@@ -22,39 +23,39 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
         await self.db.refresh(salesinvoice)
 
         return salesinvoice
-    
+
     async def update_sales_invoice(self, entity: SalesInvoice) -> SalesInvoice:
         """
         Updates only the SalesInvoice header.
         Commit should be controlled by the service layer.
         """
 
-        self.db.add(entity)      # attach entity to session
-        await self.db.flush()    # push changes (no commit)
+        self.db.add(entity)  # attach entity to session
+        await self.db.flush()  # push changes (no commit)
 
         return entity
-    
+
     async def get_sales_invoice_by_id(self, salesInvoiceID: int) -> SalesInvoice | None:
+
         stmt = (
             select(SalesInvoice)
             .options(selectinload(SalesInvoice.items))
             .where(SalesInvoice.salesInvoiceID == salesInvoiceID)
         )
+
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
     async def get_all_sales_invoice(self) -> list[SalesInvoice]:
         result = await self.db.execute(select(SalesInvoice))
         return result.scalars().all()
-    
+
     async def get_all(self) -> list[SalesInvoice]:
         result = await self.db.execute(select(SalesInvoice))
         return result.scalars().all()
-    
+
     async def get_next_salesinvoice_no(self) -> str:
-        result = await self.db.execute(
-            select(func.max(SalesInvoice.salesInvoiceNo))
-        )
+        result = await self.db.execute(select(func.max(SalesInvoice.salesInvoiceNo)))
         last_no = result.scalar()
 
         if not last_no:
@@ -62,26 +63,22 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
 
         number = int(last_no.replace("SIN", "")) + 1
         return f"SIN{number:07d}"
-    
+
     async def load_sales_invoice_table(self):
-        stmt = (
-            select(SalesInvoice)
-            .options(selectinload(SalesInvoice.customer))
-        )
+        stmt = select(SalesInvoice).options(selectinload(SalesInvoice.customer))
         result = await self.db.execute(stmt)
-        return result.scalars().all()  
-    
+        return result.scalars().all()
+
     async def get_filter_sales_invoice(
         self,
         filter_type: str,
         salesinvoice_no: Optional[str],
         page: int,
-        page_size: int
+        page_size: int,
     ):
-        stmt = (
-            select(SalesInvoice)
-            .options(selectinload(SalesInvoice.customer))  # ✅ FIX
-        )
+        stmt = select(SalesInvoice).options(
+            selectinload(SalesInvoice.customer)
+        )  # ✅ FIX
 
         today = date.today()
 
@@ -92,7 +89,7 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
         elif filter_type == "THIS_MONTH":
             stmt = stmt.where(
                 func.month(SalesInvoice.salesInvoiceDate) == today.month,
-                func.year(SalesInvoice.salesInvoiceDate) == today.year
+                func.year(SalesInvoice.salesInvoiceDate) == today.year,
             )
 
         elif filter_type == "EXPIRING_TODAY":
@@ -109,9 +106,7 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
 
         # ---------- SEARCH ----------
         if salesinvoice_no:
-            stmt = stmt.where(
-                SalesInvoice.salesInvoiceNo.ilike(f"%{salesinvoice_no}%")
-            )
+            stmt = stmt.where(SalesInvoice.salesInvoiceNo.ilike(f"%{salesinvoice_no}%"))
 
         # ---------- ORDER (MANDATORY FOR MSSQL) ----------
         stmt = stmt.order_by(SalesInvoice.salesInvoiceID.desc())
@@ -134,24 +129,24 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
                     "salesInvoiceDate": so.salesInvoiceDate,
                     "totalAmount": so.totalAmount,
                     "status": so.status,
-                    "customerName": so.customer.customerName if so.customer else None
+                    "customerName": so.customer.customerName if so.customer else None,
                 }
                 for so in salesorders
             ],
-            "total": total
+            "total": total,
         }
-    
+
     async def update_sales_invoice_status(self, entity: SalesInvoice) -> SalesInvoice:
         """
         Updates only the SalesInvoice status.
         Commit should be controlled by the service layer.
         """
 
-        self.db.add(entity)      # attach entity to session
-        await self.db.flush()    # push changes (no commit)
+        self.db.add(entity)  # attach entity to session
+        await self.db.flush()  # push changes (no commit)
 
         return entity
-    
+
     async def get_sales_invoice_with_details(self, salesinvoice_id: int):
 
         query = (
@@ -164,7 +159,6 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
 
         return result.scalar_one_or_none()
 
-
     async def add_sales_invoice(self, entity: SalesInvoice) -> SalesInvoice:
 
         self.db.add(entity)
@@ -172,40 +166,35 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
 
         return entity
 
-
     async def add_sales_invoice_detail(self, entity: SalesInvoiceDetail):
 
         self.db.add(entity)
         await self.db.flush()
 
         return entity
-    
+
     async def get_sales_order_dropdown(self):
         stmt = (
-            select(
-                SalesOrder.salesOrderID,
-                SalesOrder.salesOrderNo
-            )
-            .where(SalesOrder.status == "Draft")   # important
+            select(SalesOrder.salesOrderID, SalesOrder.salesOrderNo)
+            .where(SalesOrder.status == "Draft")  # important
             .order_by(SalesOrder.salesOrderNo)
         )
 
         result = await self.db.execute(stmt)
         return result.all()
-    
+
     async def get_sales_order_for_sales_invoice(self, salesOrderID: int):
         stmt = (
             select(SalesOrder)
             .options(selectinload(SalesOrder.items))  # ✅ eager load
             .where(
-                SalesOrder.salesOrderID == salesOrderID,
-                SalesOrder.status == "Draft"
+                SalesOrder.salesOrderID == salesOrderID, SalesOrder.status == "Draft"
             )
         )
 
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
-    
+
     async def update(self, invoice: SalesInvoice):
 
         if not invoice:
@@ -215,7 +204,7 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
         await self.db.refresh(invoice)
 
         return invoice
-    
+
     async def approve_sales_invoice(self, invoice: SalesInvoice) -> SalesInvoice:
 
         if not invoice:
