@@ -1,6 +1,7 @@
 from fastapi import Depends
 from common.db.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.services.systemadmin_service import SystemAdminService
 from src.services.database import get_async_db
 from src.repositories.period__repository import PeriodRepository
 from src.services.period__service import PeriodService
@@ -277,6 +278,35 @@ def get_quotation_service(
     repository: IQuotationRepository = Depends(get_quotation_repository),
 ) -> IQuotationService:
     return QuotationService(repository)
+
+
+from src.depends.repository_depends import get_systemadmin_repository
+from src.repositories.interfaces.isystemadmin_repository import ISystemAdminRepository
+from src.services.interfaces.isystemadmin_service import ISystemAdminService
+from src.services.systemadmin_service import SystemAdminService
+
+
+def get_systemadmin_service(
+    repository: ISystemAdminRepository = Depends(get_systemadmin_repository),
+) -> ISystemAdminService:
+    return SystemAdminService(repository)
+
+from src.depends.repository_depends import get_manage_tenant_repository
+from src.repositories.interfaces.imanagetenant_repository import IManageTenantRepository
+from src.services.interfaces.imanagetenant_service import IManageTenantService
+from src.services.managetenant_service import ManageTenantService
+
+
+def get_manage_tenant_service(
+    repository: IManageTenantRepository = Depends(get_manage_tenant_repository),
+) -> IManageTenantService:
+    return ManageTenantService(repository)
+
+
+def get_systemadmin_service(
+    repository: ISystemAdminRepository = Depends(get_systemadmin_repository),
+) -> ISystemAdminService:
+    return SystemAdminService(repository)
 
 
 from src.depends.repository_depends import get_customer_receipt_repository

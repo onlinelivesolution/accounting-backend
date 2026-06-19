@@ -1,6 +1,7 @@
 from fastapi import Depends
 from common.db.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.repositories.systemadmin_repository import SystemAdminRepository
 from src.core.tenant_database import get_tenant_db
 from src.repositories.login_repository import LoginRepository
 
@@ -106,6 +107,30 @@ def get_bank_transaction_repository(
     return BankTransactionRepository(db)
 
 
+from src.repositories.interfaces.isystemadmin_repository import (
+    ISystemAdminRepository,
+)
+from src.repositories.systemadmin_repository import SystemAdminRepository
+
+
+def get_systemadmin_repository(
+    db: AsyncSession = Depends(get_db),
+) -> ISystemAdminRepository:
+    return SystemAdminRepository(db)
+
+
+from src.repositories.interfaces.imanagetenant_repository import (
+    IManageTenantRepository,
+)
+from src.repositories.managetenant_repository import ManageTenantRepository
+
+
+def get_manage_tenant_repository(
+    db: AsyncSession = Depends(get_db),
+) -> IManageTenantRepository:
+    return ManageTenantRepository(db)
+
+
 from src.repositories.interfaces.itenant_repository import ITenantRepository
 from src.repositories.tenant_repository import TenantRepository
 
@@ -142,7 +167,6 @@ def get_customer_receipt_repository(
     return CustomerReceiptRepository(db)
 
 
-
 from src.repositories.interfaces.iemail_repository import IEmailRepository
 from src.repositories.email_repository import EmailRepository
 
@@ -170,29 +194,30 @@ def get_accounting_rule_repository(
 ) -> IAccountingRuleRepository:
     return AccountingRuleRepository(db)
 
+
 from src.repositories.interfaces.icommon_repository import ICommonRepository
 from src.repositories.common_repository import CommonRepository
 
-def get_common_repository(
-    db: AsyncSession = Depends(get_tenant_db)
-):
+
+def get_common_repository(db: AsyncSession = Depends(get_tenant_db)):
     return CommonRepository(db)
+
 
 from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
 from src.repositories.salesinvoice_repository import SalesInvoiceRepository
 
-def get_sales_invoice_repository(
-    db: AsyncSession = Depends(get_tenant_db)
-):
+
+def get_sales_invoice_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalesInvoiceRepository(db)
+
 
 from src.repositories.interfaces.isalesorder_repository import ISalesOrderRepository
 from src.repositories.salesorder_repository import SalesOrderRepository
 
-def get_sales_order_repository(
-    db: AsyncSession = Depends(get_tenant_db)
-):
+
+def get_sales_order_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalesOrderRepository(db)
+
 
 def get_account_report_repository(
     db: AsyncSession = Depends(get_db),
@@ -238,6 +263,7 @@ def get_commonjournal_repository(
     db: AsyncSession = Depends(get_db),
 ) -> ICommonJournalRepository:
     return CommonJournalRepository(db)
+
 
 def get_login_repository(db: AsyncSession = Depends(get_db)) -> ILoginRepository:
     return LoginRepository(db)
@@ -307,5 +333,3 @@ def get_salarydetail_repository(
     db: AsyncSession = Depends(get_db),
 ) -> ISalaryDetailRepository:
     return SalaryDetailRepository(db)
-
-

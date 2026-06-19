@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from datetime import datetime
 from src.repositories.interfaces.itenant_repository import ITenantRepository
 
 from src.schemas.tenant_schema import TenantCreate
-
+from common.utils.systemadmin_security import hash_password
 # from src.core.tenant_table_creator import create_tenant_tables
 from src.core.tenant_schema_creator import create_tenant_schema
 from src.core.tenant_seed_data import copy_master_data
@@ -46,8 +46,14 @@ class TenantRepository(ITenantRepository):
 
             tenant = Tenant(
                 companyName=request.companyName,
+                adminName=request.adminName,
+                databaseName=request.databaseName,
                 email=request.email,
-                databaseName=database_name,
+                # HASH PASSWORD
+                passwordHash=hash_password(request.password),
+                isActive=request.isActive,
+                status="Pending",
+                createdDate=datetime.utcnow(),
             )
 
             self.db.add(tenant)
