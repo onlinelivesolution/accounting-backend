@@ -19,11 +19,11 @@ async def register(
     return await service.register(request)
 
 
-@router.get("/getPendingTenants")
-async def get_pending_tenants(
+@router.get("/getAllTenants")
+async def get_all_tenants(
     service: IManageTenantService = Depends(get_manage_tenant_service),
 ):
-    return await service.get_pending_tenants()
+    return await service.get_all_tenants()
 
 
 @router.put("/updateTenantStatus/{tenant_id}")
@@ -36,10 +36,17 @@ async def update_tenant_status(
 
 
 @router.put("/approveTenant/{tenant_id}")
-async def approve(
-    tenant_id: int, service: IManageTenantService = Depends(get_manage_tenant_service)
+async def approve_tenant(
+    tenant_id: int,
+    service: IManageTenantService = Depends(get_manage_tenant_service)
 ):
-    return await service.approve(tenant_id)
+
+    return await service.approve_tenant(tenant_id)
+
+
+@router.get("/getTenantById/{tenant_id}")
+async def get_tenant_by_id(tenant_id: int, service=Depends(get_manage_tenant_service)):
+    return await service.get_tenant_by_id(tenant_id)
 
 
 @router.get("/{tenant_id}", response_model=TenantResponse)

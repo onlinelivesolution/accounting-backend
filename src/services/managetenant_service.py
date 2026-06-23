@@ -5,11 +5,14 @@ from src.models.tenant import Tenant
 from src.services.interfaces.imanagetenant_service import IManageTenantService
 from src.repositories.interfaces.imanagetenant_repository import IManageTenantRepository
 from common.utils.systemadmin_security import hash_password
+from src.core.tenant_provision import create_tenant_database
+from src.core.tenant_schema_creator import create_tenant_schema
+from src.core.tenant_seed_data import copy_master_data
 
 
 class ManageTenantService(IManageTenantService):
 
-    def __init__(self, repository):
+    def __init__(self, repository: IManageTenantRepository):
         self.repository = repository
 
     async def register(self, request):
@@ -27,15 +30,15 @@ class ManageTenantService(IManageTenantService):
             # HASH PASSWORD
             passwordHash=hash_password(request.password),
             isActive=request.isActive,
-            status="Pending",            
+            status="Pending",
             createdDate=datetime.utcnow(),
         )
 
         return await self.repository.create_tenant(tenant)
 
-    async def get_pending_tenants(self):
+    async def get_all_tenants(self):
 
-        return await self.repository.get_pending_tenants()
+        return await self.repository.get_all_tenants()
 
     async def update_tenant_status(self, tenant_id: int, request):
 
@@ -53,15 +56,67 @@ class ManageTenantService(IManageTenantService):
     async def get_tenant_by_id(self, tenant_id: int):
         return await self.repository.get_tenant_by_id(tenant_id)
 
-    async def approve(self, tenant_id: int):
+    async def approve_tenant(self, tenant_id: int):
+
+        # 1. Get tenant from master DB
+        tenant = await self.repository.get_tenant_by_id(tenant_id)
+
+        if not tenant:
+            raise Exception("Tenant not found")
+
+        # Prevent duplicate provisioning
+        if tenant.status == "Approved":
+
+            return {"message": "Already approved"}
+
+        # 2. Generate database name
+
+        database_name = f"tenant_{tenant.tenantID}"
+
+        # 3. Create SQL Server database
+
+        await create_tenant_database(database_name)
+
+        # SQL Server sometimes needs a moment
+        import asyncio
+
+        await asyncio.sleep(3)
+
+        # 4. Create tables
+
+        await create_tenant_schema(database_name)
+
+        # 5. Copy master data
+
+        await copy_master_data(database_name, tenant.email)
+
+        # 6. Create admin user inside tenant DB
+
+        await self.repository.create_tenant_admin_user(
+            database_name=database_name,
+            email=tenant.email,
+            password_hash=tenant.passwordHash,
+        )
+
+        # 7. Update tenant status in master DB
+
+        tenant.status = "Approved"
+        tenant.databaseName = database_name
+        tenant.isActive = True
+        tenant.approvedDate = datetime.utcnow()
+
+        await self.repository.update(tenant)
+
+        return {
+            "message": "Tenant approved successfully",
+            "databaseName": database_name,
+        }
+
+    async def get_tenant_by_id(self, tenant_id: int):
 
         tenant = await self.repository.get_tenant_by_id(tenant_id)
 
         if not tenant:
             raise Exception("Tenant not found")
 
-        tenant.status = "Approved"
-
-        await self.repository.update_tenant_status(tenant)
-
-        return {"message": "Tenant approved successfully"}
+        return tenant

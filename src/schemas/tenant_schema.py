@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr
 
 
 class TenantCreate(BaseModel):
-    
+
     companyName: str
     adminName: str
     databaseName: str

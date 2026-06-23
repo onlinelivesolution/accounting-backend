@@ -10,11 +10,11 @@ class IManageTenantService(ABC):
         pass
 
     @abstractmethod
-    async def approve(self, tenant_id: int):
+    async def approve_tenant(self, tenant_id: int):
         pass
 
     @abstractmethod
-    async def get_pending_tenants(self):
+    async def get_all_tenants(self):
         pass
     
     @abstractmethod

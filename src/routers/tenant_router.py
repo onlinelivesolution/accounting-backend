@@ -17,3 +17,11 @@ async def register_tenant(
     result = await service.register_tenant(request)
 
     return {"message": "Tenant created successfully", "data": result}
+
+@router.put("/approve/{tenant_id}")
+async def approve_tenant(
+    tenant_id: int,
+    service: ITenantService = Depends(get_tenant_service)
+):
+
+    return await service.approve_tenant(tenant_id)
