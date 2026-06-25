@@ -139,6 +139,17 @@ def get_tenant_repository(db: AsyncSession = Depends(get_db)) -> ITenantReposito
     return TenantRepository(db)
 
 
+from src.repositories.tenantauth_repository import TenantAuthRepository
+from src.repositories.interfaces.itenantauth_repository import ITenantAuthRepository
+
+
+def get_tenant_auth_repository(
+    db: AsyncSession = Depends(get_db),
+) -> ITenantAuthRepository:
+
+    return TenantAuthRepository(db)
+
+
 def get_vatrate_dropdown_repository(
     db: AsyncSession = Depends(get_db),
 ) -> ICommonDropdownRepository:

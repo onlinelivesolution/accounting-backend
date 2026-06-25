@@ -23,6 +23,9 @@ class UserInfo(Base):
     updatedDate = Column(DateTime)
     failedLoginAttempts = Column(Integer, default=0)
     lockedUntil = Column(DateTime, nullable=True)
+        # ADD THESE
+    otp = Column(String(10), nullable=True)
+    otpExpiry = Column(DateTime, nullable=True)
 
     # Relationship to Role
     role = relationship("Role", back_populates="users")

@@ -9,8 +9,13 @@ from src.services.interfaces.idetailitem_service import IDetailItemService
 from src.repositories.bankaccount_repository import BankAccountRepository
 from src.repositories.detailitem_repository import DetailItemRepository
 
-from src.depends.repository_depends import get_login_repository
+from src.depends.repository_depends import (
+    get_login_repository,
+    get_tenant_auth_repository,
+)
 from src.services.login_service import LoginService
+
+
 def get_login_service(repository=Depends(get_login_repository)):
 
     return LoginService(repository)
@@ -291,6 +296,7 @@ def get_systemadmin_service(
 ) -> ISystemAdminService:
     return SystemAdminService(repository)
 
+
 from src.depends.repository_depends import get_manage_tenant_repository
 from src.repositories.interfaces.imanagetenant_repository import IManageTenantRepository
 from src.services.interfaces.imanagetenant_service import IManageTenantService
@@ -354,7 +360,6 @@ def get_sales_invoice_service(
     return SalesInvoiceService(
         repository, journal_service, email_repository, pdf_repository
     )
-
 
 
 def get_balance_sheet_service(
@@ -469,3 +474,15 @@ def get_common_dropdown_service(
     repository: ICommonDropdownRepository = Depends(get_vatrate_dropdown_repository),
 ) -> ICommonDropdownService:
     return CommonDropdownService(repository)
+
+
+from src.services.tenantauth_service import TenantAuthService
+from src.services.interfaces.itenantauth_service import ITenantAuthService
+from src.repositories.interfaces.itenantauth_repository import ITenantAuthRepository
+
+
+def get_tenant_auth_service(
+    repository: ITenantAuthRepository = Depends(get_tenant_auth_repository),
+) -> ITenantAuthService:
+
+    return TenantAuthService(repository)

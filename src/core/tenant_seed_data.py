@@ -39,23 +39,8 @@ def generate_default_password():
 # ====================================
 
 
-async def create_admin_user(tenant_db, email: str):
+async def create_admin_user(tenant_db, email: str, password_hash: str):
 
-    # Generate Password
-    password = generate_default_password()
-
-    # Safe string
-    password = str(password).strip()
-
-    print("===================================")
-    print("GENERATED PASSWORD:", password)
-    print("PASSWORD LENGTH:", len(password))
-    print("===================================")
-
-    # HASH PASSWORD
-    hashed_password = hash_password(password)
-
-    print("HASH GENERATED SUCCESSFULLY")
 
     # CHECK EXISTING USER
     existing_user_result = await tenant_db.execute(
@@ -76,7 +61,7 @@ async def create_admin_user(tenant_db, email: str):
         userName=email,
         fullName="Admin User",
         email=email,
-        passwordHash=hashed_password,
+        passwordHash=password_hash,
         roleID=1,
         isActive=True,
         isSuperAdmin=True,
@@ -88,19 +73,12 @@ async def create_admin_user(tenant_db, email: str):
 
     await tenant_db.commit()
 
-    print("===================================")
-    print("ADMIN USER CREATED SUCCESSFULLY")
-    print("LOGIN EMAIL:", email)
-    print("TEMP PASSWORD:", password)
-    print("===================================")
-
-
 # ====================================
 # COPY MASTER DATA
 # ====================================
 
 
-async def copy_master_data(database_name: str, email: str):
+async def copy_master_data(database_name: str, email: str, password_hash: str):
 
     # MASTER DB SESSION
     async with AsyncSessionLocal() as master_db:
@@ -468,7 +446,7 @@ async def copy_master_data(database_name: str, email: str):
             # CREATE ADMIN USER
             # ====================================
 
-            await create_admin_user(tenant_db, email)
+            await create_admin_user(tenant_db, email, password_hash)
 
             print("TENANT SETUP COMPLETED")
 

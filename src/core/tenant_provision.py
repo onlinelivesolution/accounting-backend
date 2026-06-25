@@ -17,7 +17,7 @@ def get_master_connection():
 
 
 async def create_tenant_database(email: str) -> str:
-    db_name = f"os_{email.replace('@', '_').replace('.', '_')}"
+    db_name = f"{email.replace('@', '_').replace('.', '_')}"
 
     conn = get_master_connection()
     conn.autocommit = True
