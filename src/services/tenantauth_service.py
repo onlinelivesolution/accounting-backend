@@ -52,11 +52,18 @@ class TenantAuthService(ITenantAuthService):
 
     async def verify_otp(self, request):
 
-        tenant = await self.repository.get_tenant_by_email(request.username)
+        tenant = await self.repository.get_tenant_by_email(
+            request.username
+        )
 
-        tenant_db = get_tenant_session(tenant.databaseName)
+        tenant_db = get_tenant_session(
+            tenant.databaseName
+        )
 
-        user = await self.repository.get_user(tenant_db, request.username)
+        user = await self.repository.get_user(
+            tenant_db,
+            request.username
+        )
 
         if user.otp != request.otp:
             raise Exception("Invalid OTP")
@@ -64,9 +71,30 @@ class TenantAuthService(ITenantAuthService):
         if user.otpExpiry < datetime.utcnow():
             raise Exception("OTP expired")
 
-        token = create_access_token(data={"sub": user.userName})
+        token = create_access_token(
+            {
+                "sub": user.userName
+            }
+        )
 
-        return {"access_token": token, "token_type": "bearer"}
+        permissions = await self.repository.get_permissions(
+            tenant_db,
+            user.roleID
+        )
+
+        return {
+            "token": token,          # IMPORTANT: token, not access_token
+            "tenant": tenant.databaseName,
+
+            "user": {
+                "userID": user.userID,
+                "userName": user.userName,
+                "roleID": user.roleID,
+                "isSuperAdmin": user.isSuperAdmin
+            },
+
+            "permissions": permissions
+        }
 
     async def get_permissions(self, username: str):
 

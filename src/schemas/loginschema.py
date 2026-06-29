@@ -18,6 +18,7 @@ class UserSchema(BaseModel):
     userID: int
     userName: str
     roleID: int
+    isSuperAdmin: bool = False
 
 
 class PermissionSchema(BaseModel):
@@ -29,14 +30,17 @@ class PermissionSchema(BaseModel):
 class LoginResponse(BaseModel):
     token: str
     user: UserSchema
-    
+    permissions: List[PermissionSchema] = []
+
+
 class OTPVerifyRequest(BaseModel):
     userID: int
     tenant: str
-    otpCode: str    
+    otpCode: str
 
 
 class OTPVerifyResponse(BaseModel):
     token: str
-    userName: str
+    user: UserSchema
+    permissions: List[PermissionSchema] = []
     message: str

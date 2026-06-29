@@ -29,61 +29,48 @@ class TenantAuthRepository(ITenantAuthRepository):
 
         return result.scalars().first()
 
-    async def get_permissions(self, tenant_db, user):
+    async def get_permissions(
+        self,
+        db,
+        role_id: int
+    ):
 
-        # Tenant admin gets everything
-        if user.isSuperAdmin:
-
-            result = await tenant_db.execute(
-                select(Permission.permissionName, PermissionAction.actionName)
-                .join(
-                    RolePermissionAction,
-                    Permission.permissionID == RolePermissionAction.permissionID,
-                )
-                .join(
-                    PermissionAction,
-                    PermissionAction.permissionActionID
-                    == RolePermissionAction.permissionActionID,
-                )
-            )
-
-            rows = result.all()
-
-            return [
-                {
-                    "permissionName": r.permissionName,
-                    "actionName": r.actionName,
-                    "isAllowed": True,
-                }
-                for r in rows
-            ]
-
-        # Normal user permissions
-        result = await tenant_db.execute(
+        result = await db.execute(
             select(
-                Permission.permissionName,
-                PermissionAction.actionName,
-                RolePermissionAction.isAllowed,
+                Permission.permissionName.label(
+                    "permissionName"
+                ),
+                PermissionAction.actionName.label(
+                    "actionName"
+                ),
+                RolePermissionAction.isAllowed.label(
+                    "isAllowed"
+                )
             )
             .join(
                 RolePermissionAction,
-                Permission.permissionID == RolePermissionAction.permissionID,
+                Permission.permissionID
+                ==
+                RolePermissionAction.permissionID
             )
             .join(
                 PermissionAction,
                 PermissionAction.permissionActionID
-                == RolePermissionAction.permissionActionID,
+                ==
+                RolePermissionAction.permissionActionID
             )
-            .where(RolePermissionAction.roleID == user.roleID)
+            .where(
+                RolePermissionAction.roleID
+                ==
+                role_id
+            )
         )
-
-        rows = result.all()
 
         return [
             {
-                "permissionName": r.permissionName,
-                "actionName": r.actionName,
-                "isAllowed": r.isAllowed,
+                "permissionName": row.permissionName,
+                "actionName": row.actionName,
+                "isAllowed": row.isAllowed
             }
-            for r in rows
+            for row in result
         ]

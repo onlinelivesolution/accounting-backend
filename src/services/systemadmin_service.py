@@ -50,4 +50,14 @@ class SystemAdminService:
 
         token = create_access_token({"sub": user.username, "role": "SystemAdmin"})
 
-        return {"token": token, "role": "SystemAdmin"}
+        return {
+            "token": token,
+            "user": {
+                "userID": user.systemUserID,
+                "userName": user.username,
+                "roleID": user.role,
+                "isSuperAdmin": True,
+            },
+            "permissions": [],
+            "message": "Login successful",
+        }
