@@ -22,7 +22,7 @@ from src.models.lineitem import LineItem
 from src.models.user_model import UserInfo
 
 # PASSWORD HASHER
-from common.utils.security import hash_password
+from common.utils.tenant_security import hash_password
 
 # ====================================
 # DEFAULT PASSWORD
@@ -64,7 +64,7 @@ async def create_admin_user(tenant_db, email: str, password_hash: str):
         passwordHash=password_hash,
         roleID=1,
         isActive=True,
-        isSuperAdmin=True,
+        isSuperAdmin=False,
         createdBy="superadmin",
         createdDate=datetime.utcnow(),
     )

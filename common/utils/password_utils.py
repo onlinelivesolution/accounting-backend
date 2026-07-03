@@ -1,13 +1,27 @@
-# common/utils/password_utils.py
 from passlib.context import CryptContext
+from passlib.hash import argon2
 
-# ✅ Argon2 officially supported scheme name is "argon2"
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2", "bcrypt"], deprecated="auto")
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain text password against a stored hash."""
-    return pwd_context.verify(plain_password, hashed_password)
 
-def get_password_hash(password: str) -> str:
-    """Generate an Argon2 hash from the provided plain text password."""
-    return pwd_context.hash(password)
+def verify_password(plain_password: str, hashed_password: str):
+    try:
+        plain_password = plain_password.strip()
+        hashed_password = hashed_password.strip()
+
+        print("VERIFY INPUT:", repr(plain_password))
+        print("VERIFY HASH:", repr(hashed_password))
+
+        result = argon2.verify(plain_password, hashed_password)
+
+        print("VERIFY RESULT:", result)
+
+        return result
+
+    except Exception as e:
+        print("VERIFY ERROR:", str(e))
+        return False
+
+
+def hash_password(password: str):
+    return argon2.hash(password)

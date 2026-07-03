@@ -20,7 +20,7 @@ from src.repositories.interfaces.ilogin_repository import ILoginRepository
 
 from common.generic.generic_repository import GenericRepository
 
-from common.utils.security import verify_password, hash_password
+from common.utils.tenant_security import verify_password, hash_password
 
 
 class LoginRepository(GenericRepository[UserInfo], ILoginRepository):

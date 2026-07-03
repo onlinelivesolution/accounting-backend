@@ -8,7 +8,7 @@ from src.models.role_model import Role
 from src.dto.userdto import UserCreate, UserRoleUpdate, UserUpdate
 from common.generic.generic_repository import GenericRepository
 from common.generic.igeneric_repository import IGenericRepository
-from common.utils.security import hash_password  # import the function, not the context
+from common.utils.tenant_security import hash_password  # import the function, not the context
 
 
 class UserRepository(GenericRepository[UserInfo], IGenericRepository):

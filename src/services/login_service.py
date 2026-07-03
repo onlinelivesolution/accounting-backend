@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from fastapi import HTTPException
 
 from common.utils.jwt_handler import create_access_token
-from common.utils.security import verify_password
+from common.utils.tenant_security import verify_password
 from common.utils.otp_utils import generate_otp
 
 from src.models.userotp import UserOTP
