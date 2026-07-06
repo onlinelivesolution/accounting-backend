@@ -1,4 +1,4 @@
-from common.utils.tenant_security import verify_password
+from common.utils.password_utils import verify_password
 from common.utils.otp_utils import generate_otp
 from common.utils.jwt_handler import create_access_token
 from src.services.interfaces.itenantauth_service import ITenantAuthService
@@ -50,19 +50,23 @@ class TenantAuthService(ITenantAuthService):
         print("DB HASH:", repr(user.passwordHash))
 
         password_valid = verify_password(
-            request.password.strip(),
-            user.passwordHash.strip()
+            request.password,
+            user.passwordHash
         )
 
+        print("================================")
         print("PASSWORD VALID:", password_valid)
+        print("TYPE:", type(password_valid))
         print("================================")
 
-        # STOP HERE if password invalid
-        if password_valid is not True:
+        if password_valid == False:
+            print("STOPPING LOGIN")
             raise HTTPException(
                 status_code=401,
                 detail="Invalid password"
             )
+
+        print("CONTINUING TO OTP")
 
         otp = str(random.randint(100000, 999999))
 
@@ -75,7 +79,8 @@ class TenantAuthService(ITenantAuthService):
 
         return {
             "message": "OTP sent successfully",
-            "username": user.userName
+            "username": user.userName,
+            "otp": otp
         }
     
     async def verify_otp(self, request):

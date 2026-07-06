@@ -31,7 +31,11 @@ class SystemAdminService:
 
         await self.repository.update(user)
 
-        return {"message": "OTP sent"}
+        return {
+            "message": "OTP sent",
+            "username": user.username,
+            "otp": otp   # Development only
+        }
 
     async def verify_otp(self, request):
 
