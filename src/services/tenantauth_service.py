@@ -17,42 +17,26 @@ class TenantAuthService(ITenantAuthService):
     async def tenant_login(self, request):
 
         # Get tenant from master DB
-        tenant = await self.repository.get_tenant_by_email(
-            request.username.strip()
-        )
+        tenant = await self.repository.get_tenant_by_email(request.username.strip())
 
         if not tenant:
-            raise HTTPException(
-                status_code=401,
-                detail="Tenant not found"
-            )
+            raise HTTPException(status_code=401, detail="Tenant not found")
 
         # Create tenant DB session
-        tenant_db = get_tenant_session(
-            tenant.databaseName
-        )
+        tenant_db = get_tenant_session(tenant.databaseName)
 
         # Get user from tenant DB
-        user = await self.repository.get_user(
-            tenant_db,
-            request.username.strip()
-        )
+        user = await self.repository.get_user(tenant_db, request.username.strip())
 
         if not user:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid username"
-            )
+            raise HTTPException(status_code=401, detail="Invalid username")
 
         print("================================")
         print("USERNAME:", repr(user.userName))
         print("INPUT PASSWORD:", repr(request.password))
         print("DB HASH:", repr(user.passwordHash))
 
-        password_valid = verify_password(
-            request.password,
-            user.passwordHash
-        )
+        password_valid = verify_password(request.password, user.passwordHash)
 
         print("================================")
         print("PASSWORD VALID:", password_valid)
@@ -61,10 +45,7 @@ class TenantAuthService(ITenantAuthService):
 
         if password_valid == False:
             print("STOPPING LOGIN")
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid password"
-            )
+            raise HTTPException(status_code=401, detail="Invalid password")
 
         print("CONTINUING TO OTP")
 
@@ -80,9 +61,9 @@ class TenantAuthService(ITenantAuthService):
         return {
             "message": "OTP sent successfully",
             "username": user.userName,
-            "otp": otp
+            "otp": otp,
         }
-    
+
     async def verify_otp(self, request):
 
         tenant = await self.repository.get_tenant_by_email(request.username)
@@ -97,12 +78,14 @@ class TenantAuthService(ITenantAuthService):
         if user.otpExpiry < datetime.utcnow():
             raise Exception("OTP expired")
 
-        token = create_access_token({"sub": user.userName})
+        token = create_access_token(
+            {"sub": user.userName, "tenant": tenant.databaseName}
+        )
 
         permissions = await self.repository.get_permissions(tenant_db, user.roleID)
 
         return {
-            "token": token,  # IMPORTANT: token, not access_token
+            "token": token,
             "tenant": tenant.databaseName,
             "user": {
                 "userID": user.userID,
