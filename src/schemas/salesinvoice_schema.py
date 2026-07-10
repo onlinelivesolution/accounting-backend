@@ -18,13 +18,14 @@ class SalesInvoiceCreateRequest(BaseModel):
     salesOrderID: Optional[int] = None
     salesInvoiceNo: str
     salesInvoiceDate: date
+    expireDate: date | None
     customerID: int
     exclusiveAmount: float = Field(..., ge=0)
     discountAmount: float = Field(default=0, ge=0)
     vatAmount: float = Field(default=0, ge=0)
     totalAmount: float = Field(..., ge=0)
     remarks: Optional[str] = None
-    createdBy: Optional[str] = None
+    createdBy: Optional[int] = None
     companyCode: Optional[str] = None
     items: List[SalesInvoiceItemRequest]
 
@@ -55,7 +56,7 @@ class SalesInvoiceResponse(BaseModel):
     totalAmount: float
     status: str
     remarks: Optional[str] = None
-    createdBy: str
+    createdBy: Optional[int] = None
     createdDate: datetime
     items: List[SalesInvoiceItemResponse]
 

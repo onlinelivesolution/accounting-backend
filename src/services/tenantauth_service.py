@@ -79,7 +79,7 @@ class TenantAuthService(ITenantAuthService):
             raise Exception("OTP expired")
 
         token = create_access_token(
-            {"sub": user.userName, "tenant": tenant.databaseName}
+            {"sub": user.userName, "userID": user.userID, "tenant": tenant.databaseName}
         )
 
         permissions = await self.repository.get_permissions(tenant_db, user.roleID)

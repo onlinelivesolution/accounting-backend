@@ -213,19 +213,11 @@ from src.repositories.common_repository import CommonRepository
 def get_common_repository(db: AsyncSession = Depends(get_tenant_db)):
     return CommonRepository(db)
 
-
-from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
 from src.repositories.salesinvoice_repository import SalesInvoiceRepository
-
-
 def get_sales_invoice_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalesInvoiceRepository(db)
 
-
-from src.repositories.interfaces.isalesorder_repository import ISalesOrderRepository
 from src.repositories.salesorder_repository import SalesOrderRepository
-
-
 def get_sales_order_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalesOrderRepository(db)
 

@@ -9,6 +9,8 @@ from src.core.tenant_provision import create_tenant_database
 from src.core.tenant_schema_creator import create_tenant_schema
 from src.core.tenant_seed_data import copy_master_data
 from src.core.tenant_database_name import generate_database_name
+from src.core.tenant_accounting_period import create_default_accounting_period
+from src.core.tenant_initializer import initialize_new_tenant
 
 
 class ManageTenantService(IManageTenantService):
@@ -56,111 +58,48 @@ class ManageTenantService(IManageTenantService):
 
     async def get_tenant_by_id(self, tenant_id: int):
         return await self.repository.get_tenant_by_id(tenant_id)
+    
 
+    # approve tenant and create tenant database, schema, and seed data
     async def approve_tenant(self, tenant_id: int):
 
-        tenant = await self.repository.get_tenant_by_id(
-            tenant_id
-        )
+        tenant = await self.repository.get_tenant_by_id(tenant_id)
 
         if not tenant:
             raise Exception("Tenant not found")
 
         if tenant.status == "Approved":
-            return {
-                "message": "Already approved"
-            }
+            return {"message": "Already approved"}
 
         # Create database name from email
-        database_name = generate_database_name(
-            tenant.email
-        )
+        database_name = generate_database_name(tenant.email)
 
         # Create database
-        await create_tenant_database(
-            database_name
-        )
+        await create_tenant_database(database_name)
 
         import asyncio
+
         await asyncio.sleep(5)
 
         # Create tables
-        await create_tenant_schema(
-            database_name
-        )
+        await create_tenant_schema(database_name)
 
         # Copy master data + create admin user
-        await copy_master_data(
+        await initialize_new_tenant(
             database_name,
-            tenant.email,
-            tenant.passwordHash
+            tenant,
         )
 
         tenant.databaseName = database_name
         tenant.status = "Approved"
         tenant.isActive = True
 
-        await self.repository.update(
-            tenant
-        )
+        await self.repository.update(tenant)
 
         return {
             "message": "Tenant approved successfully",
-            "databaseName": database_name
+            "databaseName": database_name,
         }
-
-
-
-    # async def approve_tenant(self, tenant_id: int):
-
-    #     tenant = await self.repository.get_tenant_by_id(
-    #         tenant_id
-    #     )
-
-    #     if not tenant:
-    #         raise Exception("Tenant not found")
-
-
-    #     if tenant.status == "Approved":
-
-    #         return {
-    #             "message": "Already approved"
-    #         }
-
-
-    #     # Generate DB name from email
-    #     database_name = generate_database_name(
-    #         tenant.email
-    #     )
-
-    #     await create_tenant_database(
-    #         database_name
-    #     )
-
-    #     import asyncio
-    #     await asyncio.sleep(5)
-
-    #     await create_tenant_schema(
-    #         database_name
-    #     )
-
-    #     await copy_master_data(
-    #         database_name,
-    #         tenant.email
-    #     )
-
-    #     tenant.databaseName = database_name
-    #     tenant.status = "Approved"
-    #     tenant.isActive = True
-
-    #     await self.repository.update(
-    #         tenant
-    #     )
-
-    #     return {
-    #         "message": "Tenant approved successfully",
-    #         "databaseName": database_name
-    #     }
 
     async def get_tenant_by_id(self, tenant_id: int):
 

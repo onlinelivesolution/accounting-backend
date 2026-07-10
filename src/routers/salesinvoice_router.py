@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.tenant_database import get_tenant_db
 from typing import List
 from typing import Optional
+from src.core.auth_dependency import get_current_user
 from src.schemas.commonemail_schema import SendSalesInvoiceEmailRequest
 from fastapi import APIRouter, Depends, Query
 from src.schemas.commondropdown_schema import SalesOrderDropdown
@@ -49,43 +50,29 @@ async def load_sales_invoice_table(
 @router.post("/createSalesInvoice", response_model=SalesInvoiceResponse)
 async def create_sales_invoice(
     request: SalesInvoiceCreateRequest,
+    current_user: dict = Depends(get_current_user),
     service: ISalesInvoiceService = Depends(get_sales_invoice_service),
 ):
-    return await service.create_sales_invoice(request)
-
-
-# @router.put("/updateSalesInvoice/{salesinvoice_id}")
-# async def update_sales_invoice(
-#     salesinvoice_id: int,
-#     request: SalesInvoiceUpdateRequest,
-#     service: ISalesInvoiceService = Depends(get_sales_invoice_service)
-# ):
-#     print("UPDATE ROUTE HIT")
-#     result = await service.update_sales_invoice(salesinvoice_id, request)
-
-#     if not result:
-#         raise HTTPException(status_code=404, detail="Sales Invoice not found")
-
-#     return {"message": "Sales Invoice updated successfully"}
+    return await service.create_sales_invoice(request, current_user)
 
 
 @router.put("/updateSalesInvoice/{id}")
 async def update_sales_invoice(
     id: int,
     payload: SalesInvoiceUpdateRequest,
-    db: AsyncSession = Depends(get_tenant_db),
+    current_user: dict = Depends(get_current_user),
     service=Depends(get_sales_invoice_service),
 ):
-    return await service.update_sales_invoice(id, payload)
-
+    return await service.update_sales_invoice(id, payload, current_user)
 
 @router.put("/approveSalesInvoice/{salesInvoiceID}")
 async def approve_sales_invoice(
     salesInvoiceID: int,
+    current_user: dict = Depends(get_current_user),
     service: ISalesInvoiceService = Depends(get_sales_invoice_service),
 ):
     try:
-        result = await service.approve_sales_invoice(salesInvoiceID)
+        result = await service.approve_sales_invoice(salesInvoiceID, current_user)
         return {
             "success": True,
             "message": "Sales Invoice approved successfully",

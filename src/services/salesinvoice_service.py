@@ -1,3 +1,4 @@
+from common.utils import current_user
 from src.services.interfaces.isalesinvoice_service import ISalesInvoiceService
 from src.repositories.interfaces.isalesinvoice_repository import ISalesInvoiceRepository
 from src.services.interfaces.icommonjournal_service import ICommonJournalService
@@ -16,9 +17,6 @@ from datetime import datetime
 
 class SalesInvoiceService(ISalesInvoiceService):
 
-    # def __init__(self, repository: ISalesInvoiceRepository):
-    #     self.repository = repository
-
     def __init__(
         self,
         repository: ISalesInvoiceRepository,
@@ -31,22 +29,25 @@ class SalesInvoiceService(ISalesInvoiceService):
         self.email_service = email_service
         self.pdf_service = pdf_service
 
+    # create new sales invoice
     async def create_sales_invoice(
-        self, request: SalesInvoiceCreateRequest
+        self, request: SalesInvoiceCreateRequest, current_user: dict
     ) -> SalesInvoice:
         salesinvoice = SalesInvoice(
             salesOrderID=request.salesOrderID,
             salesInvoiceNo=request.salesInvoiceNo,
             salesInvoiceDate=request.salesInvoiceDate,
+            expireDate=request.expireDate,
             customerID=request.customerID,
             exclusiveAmount=request.exclusiveAmount,
             discountAmount=request.discountAmount,
             vatAmount=request.vatAmount,
             totalAmount=request.totalAmount,
-            createdBy=request.createdBy,
+            createdBy=current_user["userID"],
             companyCode=request.companyCode,
             createdDate=datetime.utcnow(),
             status="Draft",
+            paymentStatus="Pending",
             remarks=request.remarks,
             items=[],
         )
@@ -67,7 +68,10 @@ class SalesInvoiceService(ISalesInvoiceService):
 
         return await self.repository.create_sales_invoice(salesinvoice)
 
-    async def update_sales_invoice(self, salesinvoice_id: int, request):
+    # update existing sales invoice
+    async def update_sales_invoice(
+        self, salesinvoice_id: int, request, current_user: dict
+    ):
         """
         Business logic:
         1. Check if sales invoice exists
@@ -85,11 +89,14 @@ class SalesInvoiceService(ISalesInvoiceService):
         # Update header
         if request.salesInvoiceDate is not None:
             sales_invoice.salesInvoiceDate = request.salesInvoiceDate
+            sales_invoice.expireDate = request.expireDate
         sales_invoice.customerID = request.customerID
         sales_invoice.exclusiveAmount = request.exclusiveAmount
         sales_invoice.discountAmount = request.discountAmount
         sales_invoice.vatAmount = request.vatAmount
         sales_invoice.totalAmount = request.totalAmount
+        sales_invoice.updatedDate = datetime.utcnow()
+        sales_invoice.updatedBy = current_user.get("userID")
 
         # Delete old details
         await self.repository.db.execute(
@@ -172,6 +179,7 @@ class SalesInvoiceService(ISalesInvoiceService):
 
         return sales_invoice
 
+    # copy same sales invoice to create new sales invoice
     async def copy_sales_invoice(self, salesinvoice_id: int):
 
         # 1️⃣ Get existing invoice
@@ -192,7 +200,7 @@ class SalesInvoiceService(ISalesInvoiceService):
             totalAmount=invoice.totalAmount,
             status="Draft",
             remarks=invoice.remarks,
-            createdBy="admin",
+            createdBy=current_user.get("userID"),
             createdDate=datetime.utcnow(),
         )
 
@@ -252,7 +260,8 @@ class SalesInvoiceService(ISalesInvoiceService):
             ],
         }
 
-    async def approve_sales_invoice(self, salesInvoiceID: int):
+    # approve sales invoice
+    async def approve_sales_invoice(self, salesInvoiceID: int, current_user: dict):
 
         invoice = await self.repository.get_sales_invoice_by_id(salesInvoiceID)
 
@@ -268,6 +277,9 @@ class SalesInvoiceService(ISalesInvoiceService):
         # ✅ Update status
         invoice.status = "APPROVED"
 
+        invoice.approvedBy = current_user.get("userID")
+        invoice.approvedDate = datetime.utcnow()
+        
         await self.repository.update(invoice)
 
         return {"message": "Approved successfully"}

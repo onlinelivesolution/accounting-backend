@@ -15,6 +15,7 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
         super().__init__(SalesInvoice, db)
         self.db = db
 
+    # create sales invoice and sales invoice detail
     async def create_sales_invoice(self, salesinvoice: SalesInvoice) -> SalesInvoice:
 
         self.db.add(salesinvoice)
@@ -24,6 +25,7 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
 
         return salesinvoice
 
+    # update sales invoice and sales invoice detail
     async def update_sales_invoice(self, entity: SalesInvoice) -> SalesInvoice:
         """
         Updates only the SalesInvoice header.
@@ -54,6 +56,7 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
         result = await self.db.execute(select(SalesInvoice))
         return result.scalars().all()
 
+    # generate next sales invoice number in the format "SIN0000001", "SIN0000002", etc.
     async def get_next_salesinvoice_no(self) -> str:
         result = await self.db.execute(select(func.max(SalesInvoice.salesInvoiceNo)))
         last_no = result.scalar()
@@ -69,6 +72,7 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
+    # search filter sales invoice information detail
     async def get_filter_sales_invoice(
         self,
         filter_type: str,
@@ -135,7 +139,9 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
             ],
             "total": total,
         }
+        
 
+    # update sales invoice status
     async def update_sales_invoice_status(self, entity: SalesInvoice) -> SalesInvoice:
         """
         Updates only the SalesInvoice status.
@@ -205,6 +211,7 @@ class SalesInvoiceRepository(GenericRepository[SalesInvoice], ISalesInvoiceRepos
 
         return invoice
 
+    # approve sales invoice information 
     async def approve_sales_invoice(self, invoice: SalesInvoice) -> SalesInvoice:
 
         if not invoice:
