@@ -17,6 +17,7 @@ from src.models.reportingitem import ReportingItem
 from src.models.detailitem import DetailItem
 from src.models.customers import Customer
 from src.models.lineitem import LineItem
+from src.models.accountmapping import AccountMapping
 
 # USER MODEL
 from src.models.user_model import UserInfo
@@ -40,7 +41,6 @@ def generate_default_password():
 
 
 async def create_admin_user(tenant_db, email: str, password_hash: str):
-
 
     # CHECK EXISTING USER
     existing_user_result = await tenant_db.execute(
@@ -72,6 +72,7 @@ async def create_admin_user(tenant_db, email: str, password_hash: str):
     tenant_db.add(admin_user)
 
     await tenant_db.commit()
+
 
 # ====================================
 # COPY MASTER DATA
@@ -112,6 +113,8 @@ async def copy_master_data(database_name: str, email: str, password_hash: str):
             await tenant_db.execute(text("DELETE FROM Customer"))
 
             await tenant_db.execute(text("DELETE FROM LineItem"))
+
+            await tenant_db.execute(text("DELETE FROM AccountMapping"))
 
             await tenant_db.commit()
 
@@ -415,6 +418,29 @@ async def copy_master_data(database_name: str, email: str, password_hash: str):
                     )
                     for i in detail_items
                 ]
+            )
+
+            await tenant_db.commit()
+
+            # ====================================
+            # COPY ACCOUNT MAPPING
+            # ====================================
+
+            account_mapping_result = await master_db.execute(select(AccountMapping))
+
+            account_mappings = account_mapping_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    AccountMapping(
+                        accountMappingID=i.accountMappingID,
+                        accountMappingType=i.accountMappingType,
+                        controlItem=i.controlItem,
+                        financialStatement=i.financialStatement,
+                        normalBalance=i.normalBalance,
+                    )
+                    for i in account_mappings
+                ] 
             )
 
             await tenant_db.commit()

@@ -63,11 +63,6 @@ from src.repositories.assignpermission_repository import AssignPermissionReposit
 from src.repositories.interfaces.ilogin_repository import ILoginRepository
 from src.repositories.login_repository import LoginRepository
 
-from src.repositories.interfaces.icommonjournal_repository import (
-    ICommonJournalRepository,
-)
-from src.repositories.commonjournal_repository import CommonJournalRepository
-
 from src.repositories.interfaces.ibankaccount_repository import IBankAccountRepository
 from src.repositories.bankaccount_repository import BankAccountRepository
 
@@ -221,6 +216,9 @@ from src.repositories.salesorder_repository import SalesOrderRepository
 def get_sales_order_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalesOrderRepository(db)
 
+from src.repositories.commonjournal_repository import CommonJournalRepository
+def get_commonjournal_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return CommonJournalRepository(db)
 
 def get_account_report_repository(
     db: AsyncSession = Depends(get_db),
@@ -260,12 +258,6 @@ def get_bank_account_repository(
     db: AsyncSession = Depends(get_db),
 ) -> IBankAccountRepository:
     return BankAccountRepository(db)
-
-
-def get_commonjournal_repository(
-    db: AsyncSession = Depends(get_db),
-) -> ICommonJournalRepository:
-    return CommonJournalRepository(db)
 
 
 def get_login_repository(db: AsyncSession = Depends(get_db)) -> ILoginRepository:
