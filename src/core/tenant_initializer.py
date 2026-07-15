@@ -1,5 +1,6 @@
 from src.core.tenant_seed_data import copy_master_data
 from src.core.tenant_accounting_period import create_default_accounting_period
+from src.core.tenant_fiscal_year import create_default_fiscal_year
 
 
 async def initialize_new_tenant(
@@ -19,6 +20,9 @@ async def initialize_new_tenant(
 
     # Create default Accounting Period
     await create_default_accounting_period(database_name)
+    
+    # Create default Fiscal Year
+    await create_default_fiscal_year(database_name)
 
     # Future initialization
 

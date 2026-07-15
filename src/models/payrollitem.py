@@ -6,13 +6,13 @@ class PayrollItem(Base):
     __tablename__ = "PayrollItem"
 
     payrollItemID        = Column(Integer, primary_key=True, index=True)   
-    payrollItemName      = Column(String(50), nullable=False)
-    companyCode          = Column(String(2), nullable=False)
-    createdBy            = Column(String(50), nullable=False)
-    createdDate          = Column(DateTime, nullable=False)
-    updatedBy            = Column(String(50), nullable=False)
-    updatedDate          = Column(DateTime, nullable=False)
-    status               = Column(Integer, nullable=False)
+    payrollItemName      = Column(String(50), nullable=True)
+    createdBy            = Column(String(50), nullable=True)
+    createdDate          = Column(DateTime, nullable=True)
+    updatedBy            = Column(String(50), nullable=True)
+    updatedDate          = Column(DateTime, nullable=True)
+    companyCode          = Column(String(2), nullable=True)
+    status               = Column(Integer, nullable=True)
     
     payscale_mappings = relationship("PayScaleMapping", back_populates="payroll_item")
 

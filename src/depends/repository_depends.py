@@ -31,12 +31,8 @@ from src.repositories.interfaces.igeneratesalary_repository import (
 from src.repositories.interfaces.isalarydetail_repository import ISalaryDetailRepository
 from src.repositories.salarydetail_repository import SalaryDetailRepository
 
-from src.repositories.generatesalary_repository import GenerateSalaryRepository
+# from src.repositories.generatesalary_repository import GenerateSalaryRepository
 
-from src.repositories.interfaces.ipayscalemappings_repository import (
-    IPayScaleMappingRepository,
-)
-from src.repositories.payscalemappings_repository import PayScaleMappingRepository
 
 from src.repositories.interfaces.iemployee_repository import IEmployeeRepository
 from src.repositories.employee_repository import EmployeeRepository
@@ -208,17 +204,43 @@ from src.repositories.common_repository import CommonRepository
 def get_common_repository(db: AsyncSession = Depends(get_tenant_db)):
     return CommonRepository(db)
 
+
 from src.repositories.salesinvoice_repository import SalesInvoiceRepository
+
+
 def get_sales_invoice_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalesInvoiceRepository(db)
 
+
 from src.repositories.salesorder_repository import SalesOrderRepository
+
+
 def get_sales_order_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalesOrderRepository(db)
 
+
 from src.repositories.commonjournal_repository import CommonJournalRepository
+
+
 def get_commonjournal_repository(db: AsyncSession = Depends(get_tenant_db)):
     return CommonJournalRepository(db)
+
+
+from src.repositories.generatesalary_repository import GenerateSalaryRepository
+
+
+def get_generatesalary_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return GenerateSalaryRepository(db)
+
+
+from src.repositories.payscalemappings_repository import PayScaleMappingRepository
+def get_payscalemappings_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return PayScaleMappingRepository(db)
+
+from src.repositories.salarydetail_repository import SalaryDetailRepository
+def get_salarydetail_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return SalaryDetailRepository(db)
+
 
 def get_account_report_repository(
     db: AsyncSession = Depends(get_db),
@@ -311,20 +333,3 @@ def get_detailitem_repository(
 ) -> IDetailItemRepository:
     return DetailItemRepository(db)
 
-
-def get_payscalemapping_repository(
-    db: AsyncSession = Depends(get_db),
-) -> IPayScaleMappingRepository:
-    return PayScaleMappingRepository(db)
-
-
-def get_generatesalary_repository(
-    db: AsyncSession = Depends(get_db),
-) -> IGenerateSalaryRepository:
-    return GenerateSalaryRepository(db)
-
-
-def get_salarydetail_repository(
-    db: AsyncSession = Depends(get_db),
-) -> ISalaryDetailRepository:
-    return SalaryDetailRepository(db)

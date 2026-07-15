@@ -57,25 +57,6 @@ from src.repositories.interfaces.idetailitem_repository import IDetailItemReposi
 from src.services.interfaces.idetailitem_service import IDetailItemService
 from src.services.detailitem_service import DetailItemService
 
-from src.depends.repository_depends import get_payscalemapping_repository
-from src.repositories.interfaces.ipayscalemappings_repository import (
-    IPayScaleMappingRepository,
-)
-from src.services.interfaces.ipayscalemappings_service import IPayScaleMappingService
-from src.services.payscalemappings_service import PayScaleMappingService
-
-from src.depends.repository_depends import get_generatesalary_repository
-from src.repositories.interfaces.igeneratesalary_repository import (
-    IGenerateSalaryRepository,
-)
-from src.services.interfaces.igeneratesalary_service import IGenerateSalaryService
-from src.services.generatesalary_service import GenerateSalaryService
-
-from src.depends.repository_depends import get_salarydetail_repository
-from src.repositories.interfaces.isalarydetail_repository import ISalaryDetailRepository
-from src.services.interfaces.isalarydetail_service import ISalaryDetailService
-from src.services.salarydetail_service import SalaryDetailService
-
 from src.depends.repository_depends import get_employee_repository
 from src.repositories.interfaces.iemployee_repository import IEmployeeRepository
 from src.services.interfaces.iemployee_service import IEmployeeService
@@ -272,6 +253,40 @@ def get_sales_order_service(
 ) -> ISalesOrderService:
     return SalesOrderService(repository)
 
+from src.depends.repository_depends import get_payscalemappings_repository
+from src.repositories.interfaces.ipayscalemappings_repository import IPayScaleMappingRepository
+from src.services.interfaces.ipayscalemappings_service import IPayScaleMappingService
+from src.services.payscalemappings_service import PayScaleMappingService
+
+def get_payscalemapping_service(
+    repository: IPayScaleMappingRepository = Depends(get_payscalemappings_repository),
+) -> IPayScaleMappingService:
+    return PayScaleMappingService(repository)
+
+
+from src.depends.repository_depends import get_generatesalary_repository
+from src.repositories.interfaces.igeneratesalary_repository import (
+    IGenerateSalaryRepository,
+)
+from src.services.interfaces.igeneratesalary_service import IGenerateSalaryService
+from src.services.generatesalary_service import GenerateSalaryService
+
+
+def get_generatesalary_service(
+    repository: IGenerateSalaryRepository = Depends(get_generatesalary_repository),
+) -> IGenerateSalaryService:
+    return GenerateSalaryService(repository)
+
+from src.depends.repository_depends import get_salarydetail_repository
+from src.repositories.interfaces.isalarydetail_repository import ISalaryDetailRepository
+from src.services.interfaces.isalarydetail_service import ISalaryDetailService
+from src.services.salarydetail_service import SalaryDetailService
+
+def get_salarydetail_service(
+    repository: ISalaryDetailRepository = Depends(get_salarydetail_repository),
+) -> ISalaryDetailService:
+    return SalaryDetailService(repository)
+
 
 from src.depends.repository_depends import get_quotation_repository
 from src.repositories.interfaces.iquotation_repository import IQuotationRepository
@@ -450,24 +465,6 @@ def get_detailitem_service(
     repository: IDetailItemRepository = Depends(get_detailitem_repository),
 ) -> IDetailItemService:
     return DetailItemService(repository)
-
-
-def get_payscalemapping_service(
-    repository: IPayScaleMappingRepository = Depends(get_payscalemapping_repository),
-) -> IPayScaleMappingService:
-    return PayScaleMappingService(repository)
-
-
-def get_generatesalary_service(
-    repository: IGenerateSalaryRepository = Depends(get_generatesalary_repository),
-) -> IGenerateSalaryService:
-    return GenerateSalaryService(repository)
-
-
-def get_salarydetail_service(
-    repository: ISalaryDetailRepository = Depends(get_salarydetail_repository),
-) -> ISalaryDetailService:
-    return SalaryDetailService(repository)
 
 
 def get_common_dropdown_service(

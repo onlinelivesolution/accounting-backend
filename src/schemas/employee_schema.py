@@ -8,7 +8,7 @@ class EmployeeBase(BaseModel):
     firstName: str
     middleName: str
     lastName: str
-    employeeName: str
+    employeeName: Optional[str] = None
     fatherName: str
     motherName: str
     gender: int
@@ -34,6 +34,8 @@ class EmployeeBase(BaseModel):
     employeeSetID: int
     createdBy: Optional[str] = None
     createdDate: Optional[datetime] = datetime.utcnow()
+    
+    model_config = ConfigDict(from_attributes=True)
 
 class EmployeeCreate(EmployeeBase):
     createdBy: Optional[str] = None

@@ -1,4 +1,4 @@
-from sqlalchemy import select, text
+from sqlalchemy import Column, select, text
 from datetime import datetime
 from src.services.database import AsyncSessionLocal
 from src.core.tenant_database import get_tenant_session
@@ -18,6 +18,12 @@ from src.models.detailitem import DetailItem
 from src.models.customers import Customer
 from src.models.lineitem import LineItem
 from src.models.accountmapping import AccountMapping
+from src.models.employee import Employee
+from src.models.payrollitem import PayrollItem
+from src.models.taxband import TaxBand
+from src.models.taxdefinition import TaxDefinition
+from src.models.taxfreeamount import TaxFreeAmount
+from src.models.taxsettings import TaxSettings
 
 # USER MODEL
 from src.models.user_model import UserInfo
@@ -115,6 +121,18 @@ async def copy_master_data(database_name: str, email: str, password_hash: str):
             await tenant_db.execute(text("DELETE FROM LineItem"))
 
             await tenant_db.execute(text("DELETE FROM AccountMapping"))
+
+            await tenant_db.execute(text("DELETE FROM Employee"))
+
+            await tenant_db.execute(text("DELETE FROM PayrollItem"))
+
+            await tenant_db.execute(text("DELETE FROM TaxBand"))
+
+            await tenant_db.execute(text("DELETE FROM TaxDefinition"))
+
+            await tenant_db.execute(text("DELETE FROM TaxFreeAmount"))
+
+            await tenant_db.execute(text("DELETE FROM TaxSettings"))
 
             await tenant_db.commit()
 
@@ -440,7 +458,186 @@ async def copy_master_data(database_name: str, email: str, password_hash: str):
                         normalBalance=i.normalBalance,
                     )
                     for i in account_mappings
-                ] 
+                ]
+            )
+
+            await tenant_db.commit()
+
+            # ====================================
+            # COPY Employee
+            # ====================================
+
+            employee_result = await master_db.execute(select(Employee))
+
+            employees = employee_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    Employee(
+                        employeeID=i.employeeID,
+                        employeeCode=i.employeeCode,
+                        applicantID=i.applicantID,
+                        firstName=i.firstName,
+                        middleName=i.middleName,
+                        lastName=i.lastName,
+                        employeeName=i.employeeName,
+                        fatherName=i.fatherName,
+                        motherName=i.motherName,
+                        gender=i.gender,
+                        dateOfBirth=i.dateOfBirth,
+                        nationalID=i.nationalID,
+                        address=i.address,
+                        postalAddress=i.postalAddress,
+                        accountHolder=i.accountHolder,
+                        bankID=i.bankID,
+                        bankBranchID=i.bankBranchID,
+                        accountNumber=i.accountNumber,
+                        designation=i.designation,
+                        joinDate=i.joinDate,
+                        email=i.email,
+                        phone=i.phone,
+                        companyCode=i.companyCode,
+                        activityCenterCode=i.activityCenterCode,
+                        respCenterCode=i.respCenterCode,
+                        emergencyContact=i.emergencyContact,
+                        employeeImage=i.employeeImage,
+                        status=i.status,
+                        deviceID=i.deviceID,
+                        gradedTaxNo=i.gradedTaxNo,
+                        terminitionDate=i.terminitionDate,
+                        employeeSetID=i.employeeSetID,
+                        createdBy=i.createdBy,
+                        createdDate=i.createdDate,
+                        updatedBy=i.updatedBy,
+                        updatedDate=i.updatedDate,
+                    )
+                    for i in employees
+                ]
+            )
+
+            await tenant_db.commit()
+
+            # ====================================
+            # COPY PAYROLL ITEM
+            # ====================================
+
+            payroll_item_result = await master_db.execute(select(PayrollItem))
+
+            payroll_items = payroll_item_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    PayrollItem(
+                        payrollItemID=i.payrollItemID,
+                        payrollItemName=i.payrollItemName,
+                        createdBy=i.createdBy,
+                        createdDate=i.createdDate,
+                        updatedBy=i.updatedBy,
+                        updatedDate=i.updatedDate,
+                        companyCode=i.companyCode,
+                        status=i.status,
+                    )
+                    for i in payroll_items
+                ]
+            )
+
+            await tenant_db.commit()
+
+            # ====================================
+            # COPY TAX BAND
+            # ====================================
+
+            tax_band_result = await master_db.execute(select(TaxBand))
+
+            tax_bands = tax_band_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    TaxBand(
+                        taxBandID=i.taxBandID,
+                        taxDefinitionID=i.taxDefinitionID,
+                        bandName=i.bandName,
+                        startRange=i.startRange,
+                        endRange=i.endRange,
+                        percentage=i.percentage,
+                    )
+                    for i in tax_bands
+                ]
+            )
+
+            await tenant_db.commit()
+
+            # ====================================
+            # COPY TAX DEFINITION
+            # ====================================
+
+            tax_definition_result = await master_db.execute(select(TaxDefinition))
+
+            tax_definitions = tax_definition_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    TaxDefinition(
+                        taxDefinitionID=i.taxDefinitionID,
+                        fiscalYear=i.fiscalYear,
+                        taxFreeAmount=i.taxFreeAmount,
+                        isAgeCreditApplicable=i.isAgeCreditApplicable,
+                        age=i.age,
+                        ageCredit=i.ageCredit,
+                        createdBy=i.createdBy,
+                        createdDate=i.createdDate,
+                        updatedBy=i.updatedBy,
+                        updatedDate=i.updatedDate,
+                        companyCode=i.companyCode,
+                    )
+                    for i in tax_definitions
+                ]
+            )
+
+            await tenant_db.commit()
+
+            # ====================================
+            # COPY TAX FREE AMOUNT
+            # ====================================
+
+            tax_free_amount_result = await master_db.execute(select(TaxFreeAmount))
+
+            tax_free_amounts = tax_free_amount_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    TaxFreeAmount(
+                        freeAmountID=i.freeAmountID,
+                        gender=i.gender,
+                        freeAmount=i.freeAmount,
+                        userID=i.userID,
+                        createdDate=i.createdDate,
+                    )
+                    for i in tax_free_amounts
+                ]
+            )
+
+            await tenant_db.commit()
+
+            # ====================================
+            # COPY TAX SETTINGS
+            # ====================================
+
+            tax_settings_result = await master_db.execute(select(TaxSettings))
+
+            tax_settings = tax_settings_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    TaxSettings(
+                        taxSettingID=i.taxSettingID,
+                        employeeID=i.employeeID,
+                        employeeCode=i.employeeCode,
+                        taxAmount=i.taxAmount,
+                        status=i.status,
+                    )
+                    for i in tax_settings 
+                ]
             )
 
             await tenant_db.commit()
