@@ -1,6 +1,7 @@
 from fastapi import Depends
 from common.db.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.services.systemadmin_service import SystemAdminService
 from src.services.database import get_async_db
 from src.repositories.period__repository import PeriodRepository
@@ -287,6 +288,15 @@ def get_salarydetail_service(
 ) -> ISalaryDetailService:
     return SalaryDetailService(repository)
 
+from src.depends.repository_depends import get_salarypayment_repository
+from src.repositories.interfaces.isalarypayment_repository import ISalaryPaymentRepository
+from src.services.interfaces.isalarypayment_service import ISalaryPaymentService
+from src.services.salarypayment_service import SalaryPaymentService
+
+def get_salarypayment_service(
+    repository: ISalaryPaymentRepository = Depends(get_salarypayment_repository),
+) -> ISalaryPaymentService:
+    return SalaryPaymentService(repository)
 
 from src.depends.repository_depends import get_quotation_repository
 from src.repositories.interfaces.iquotation_repository import IQuotationRepository

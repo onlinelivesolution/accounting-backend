@@ -241,6 +241,10 @@ from src.repositories.salarydetail_repository import SalaryDetailRepository
 def get_salarydetail_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalaryDetailRepository(db)
 
+from src.repositories.salarypayment_repository import SalaryPaymentRepository
+def get_salarypayment_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return SalaryPaymentRepository(db)
+
 
 def get_account_report_repository(
     db: AsyncSession = Depends(get_db),
