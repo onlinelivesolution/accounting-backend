@@ -27,7 +27,7 @@ class GenerateSalaryService(IGenerateSalaryService):
 
         salary = Salary(
             fiscalYear=data.salary.fiscalYear,
-            month=data.salary.month,
+            month=datetime.now().month,
             workingDay=data.salary.workingDay,
             companyCode=data.salary.companyCode,
             departmentCode=data.salary.departmentCode,
@@ -38,7 +38,7 @@ class GenerateSalaryService(IGenerateSalaryService):
             # approvedDate=datetime.now(),
             hRComments=data.salary.hRComments,
             status=data.salary.status,
-            year=data.salary.year,
+            year=datetime.now().year,
         )
 
         # Build SalaryDetail list

@@ -13,5 +13,8 @@ class SalaryPaymentDetail(Base):
     amount = Column(Numeric(18, 2), nullable=True)
     paymentStatus = Column(Integer, nullable=True)
 
-    salary_payment = relationship("SalaryPayment", back_populates="details")
+    salaryPayment = relationship(
+        "SalaryPayment",
+        back_populates="details"
+    )
  

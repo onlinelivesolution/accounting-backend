@@ -8,6 +8,8 @@ from src.dto.activitycenterdto import ActivityCenterDTO
 from src.dto.responsibilitycenterdto import ResponsibilityCenterDTO
 from src.models.salary import Salary
 from src.models.salarydetail import SalaryDetail
+from src.models.salarypayment import SalaryPayment
+from src.models.salarypaymentdetail import SalaryPaymentDetail
 from src.schemas.salaryschema import SalaryRead
 from src.dto.generatesalaryrowdto import GenerateSalaryRowDTO
 from src.dto.generatesalaryresponsedto import GenerateSalaryResponseDTO
@@ -16,5 +18,9 @@ class ISalaryPaymentRepository(ABC):
     
     @abstractmethod
     async def get_approve_salary(self, year: str, month: int, status: int) -> List[Salary]:
+        pass
+    
+    @abstractmethod
+    async def create_salary_payment(self, salary_payment: SalaryPayment) -> SalaryPayment:
         pass
     

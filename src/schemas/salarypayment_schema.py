@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
-from datetime import datetime
+from datetime import date, datetime
 from common.enum.commenum import DefaultItemStatus, MonthName
 
 
@@ -30,8 +30,6 @@ class SalaryDetailRead(BaseModel):
     status: int | None = None
     netEarnings: float | None = None
 
-    class Config:
-        from_attributes = True
 
 
 class SalaryRead(BaseModel):
@@ -48,6 +46,52 @@ class SalaryRead(BaseModel):
     monthName: Optional[str] = None
     statusName: Optional[str] = None
     details: List[SalaryDetailRead] = []
+    
+    model_config = {"from_attributes": True}
+    
+class SalaryPaymentItemRequest(BaseModel):
+    salaryPaymentID: int
+    salaryID: int
+    employeeID: int    
+    amount: float = Field(..., gt=0)
+    paymentStatus: int
+
+    model_config = {"from_attributes": True}
+
+class SalaryPaymentCreateRequest(BaseModel):
+    paymentNo: str
+    paymentDate: datetime
+    salaryMonth: str
+    salaryYear: str
+    bankAccountID: int
+    totalAmount: float = Field(..., ge=0)
+    remarks: str
+    status: int
+    createdBy: Optional[int] = None
+    createdDate: datetime
+    
+    salaryPaymentDetails: List[SalaryPaymentItemRequest]
+    
+    model_config = {"from_attributes": True}
+        
+class SalaryPaymentItemResponse(BaseModel):
+    salaryPaymentDetailID : int
+    salaryPaymentID: int
+    employeeID: int
+    amount: float
+    paymentStatus: int
+
+    model_config = {"from_attributes": True}
+    
+class SalaryPaymentResponse(BaseModel):
+    salaryPaymentID: int
+    salaryID: int
+    month: int
+    paymentDate: datetime
+    items: List[SalaryPaymentItemResponse]
+
+    model_config = {"from_attributes": True}
+
 
     @classmethod
     def from_orm(cls, obj):
@@ -70,5 +114,4 @@ class SalaryRead(BaseModel):
 
         return cls(**data)
 
-    class Config:
-        from_attributes = True
+
