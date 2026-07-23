@@ -10,7 +10,7 @@ class JournalDetail(Base):
 
 
     journalDetailID = Column(Integer, primary_key=True, index=True)
-    journalType = Column(String(50), nullable=False)  # OPENING, GENERAL, ADJUSTMENT
+    journalType = Column(String(50), nullable=True)  # OPENING, GENERAL, ADJUSTMENT
     journalHeaderID = Column(
         Integer,
         ForeignKey("JournalHeader.journalHeaderID"),

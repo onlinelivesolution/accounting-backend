@@ -92,12 +92,6 @@ from src.repositories.interfaces.ibanktransaction_repository import (
 from src.repositories.banktransaction_repository import BankTransactionRepository
 
 
-def get_bank_transaction_repository(
-    db: AsyncSession = Depends(get_db),
-) -> IBankTransactionRepository:
-    return BankTransactionRepository(db)
-
-
 from src.repositories.interfaces.isystemadmin_repository import (
     ISystemAdminRepository,
 )
@@ -197,31 +191,20 @@ def get_accounting_rule_repository(
     return AccountingRuleRepository(db)
 
 
-from src.repositories.interfaces.icommon_repository import ICommonRepository
-from src.repositories.common_repository import CommonRepository
-
-
-def get_common_repository(db: AsyncSession = Depends(get_tenant_db)):
-    return CommonRepository(db)
-
-
 from src.repositories.salesinvoice_repository import SalesInvoiceRepository
-
-
 def get_sales_invoice_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalesInvoiceRepository(db)
 
+from src.repositories.salarypayment_repository import SalaryPaymentRepository
+def get_salarypayment_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return SalaryPaymentRepository(db)
 
 from src.repositories.salesorder_repository import SalesOrderRepository
-
-
 def get_sales_order_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalesOrderRepository(db)
 
 
 from src.repositories.commonjournal_repository import CommonJournalRepository
-
-
 def get_commonjournal_repository(db: AsyncSession = Depends(get_tenant_db)):
     return CommonJournalRepository(db)
 
@@ -241,9 +224,13 @@ from src.repositories.salarydetail_repository import SalaryDetailRepository
 def get_salarydetail_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalaryDetailRepository(db)
 
-from src.repositories.salarypayment_repository import SalaryPaymentRepository
-def get_salarypayment_repository(db: AsyncSession = Depends(get_tenant_db)):
-    return SalaryPaymentRepository(db)
+from src.repositories.banktransaction_repository import BankTransactionRepository
+def get_bank_transaction_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return BankTransactionRepository(db)
+
+from src.repositories.common_repository import CommonRepository
+def get_common_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return CommonRepository(db)
 
 
 def get_account_report_repository(

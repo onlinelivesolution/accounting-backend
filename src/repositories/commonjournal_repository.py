@@ -2,6 +2,8 @@ from common.generic.generic_repository import GenericRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import re
+from sqlalchemy import select, text
+from sqlalchemy.dialects import mssql
 from decimal import Decimal
 from datetime import datetime
 from src.models.controlitem import ControlItem
@@ -254,14 +256,63 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
     
     async def get_period_by_date(self, companyCode: str, txn_date):
 
-        stmt = select(AccountingPeriod).where(
-            AccountingPeriod.companyCode == companyCode,
-            AccountingPeriod.periodStart <= txn_date,
-            AccountingPeriod.periodEnd >= txn_date
+        # Convert datetime to date
+        if isinstance(txn_date, datetime):
+            txn_date = txn_date.date()
+
+        print("=" * 60)
+        print("Searching Accounting Period")
+        print("Company :", companyCode)
+        print("Txn Date:", txn_date)
+        print("Type    :", type(txn_date))
+
+        # Current database
+        db_name = await self.db.execute(text("SELECT DB_NAME()"))
+        print("Database:", db_name.scalar())
+
+        # Debug: Show all Accounting Periods
+        all_periods = await self.db.execute(
+            text("""
+                SELECT
+                    periodID,
+                    companyCode,
+                    periodStart,
+                    periodEnd,
+                    isClosed
+                FROM AccountingPeriod
+                ORDER BY periodStart
+            """)
+        )
+
+        print("Accounting Periods:")
+        for row in all_periods.fetchall():
+            print(row)
+
+        # ORM Query
+        stmt = (
+            select(AccountingPeriod)
+            .where(
+                AccountingPeriod.companyCode == companyCode,
+                AccountingPeriod.periodStart <= txn_date,
+                AccountingPeriod.periodEnd >= txn_date,
+            )
         )
 
         result = await self.db.execute(stmt)
-        return result.scalar_one_or_none()
+        period = result.scalar_one_or_none()
+
+        print("Matched Period:", period)
+
+        if period:
+            print(f"Period ID   : {period.periodID}")
+            print(f"Start Date  : {period.periodStart}")
+            print(f"End Date    : {period.periodEnd}")
+            print(f"Fiscal Year : {period.fiscalYear}")
+            print(f"Is Closed   : {period.isClosed}")
+
+        print("=" * 60)
+
+        return period
     
     async def create_journal(self, header: JournalHeader, details: list[JournalDetail]):
         self.db.add(header)

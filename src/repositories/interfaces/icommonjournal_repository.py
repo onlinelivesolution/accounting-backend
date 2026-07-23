@@ -56,6 +56,10 @@ class ICommonJournalRepository(ABC):
     @abstractmethod
     async def create_invoice_journal_entry(self, data: dict):
         pass
+    
+    @abstractmethod
+    async def create_salary_payment_journal(self, data: dict):
+        pass
 
     @abstractmethod
     async def get_detail_item_by_account_id(self, account_id: int) -> str:

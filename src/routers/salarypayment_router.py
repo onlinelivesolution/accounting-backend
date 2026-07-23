@@ -4,7 +4,10 @@ from pydantic import BaseModel
 from typing import List
 from src.core.auth_dependency import get_current_user
 from src.schemas.salaryschema import SalaryRead
-from src.schemas.salarypayment_schema import SalaryPaymentCreateRequest, SalaryPaymentResponse
+from src.schemas.salarypayment_schema import (
+    SalaryPaymentCreateRequest,
+    SalaryPaymentCreateResponse,
+)
 from src.models.salary import Salary
 from common.enum.commenum import DefaultItemStatus
 from src.services.interfaces.isalarypayment_service import ISalaryPaymentService
@@ -25,9 +28,13 @@ async def get_approve_salary(
     status: int,
     service: ISalaryPaymentService = Depends(get_salarypayment_service),
 ):
-    return await service.get_approve_salary(year, month, status) 
+    return await service.get_approve_salary(year, month, status)
 
-@router.post("/createSalaryPayment", response_model=SalaryPaymentResponse)
+
+@router.post(
+    "/createSalaryPayment",
+    response_model=SalaryPaymentCreateResponse,
+)
 async def create_salary_payment(
     request: SalaryPaymentCreateRequest,
     current_user: dict = Depends(get_current_user),
@@ -36,4 +43,3 @@ async def create_salary_payment(
     return await service.create_salary_payment(request, current_user)
 
 
- 

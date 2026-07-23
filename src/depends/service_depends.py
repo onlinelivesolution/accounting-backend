@@ -146,12 +146,6 @@ def get_tenant_service(
     return TenantService(repository)
 
 
-from src.depends.repository_depends import get_common_repository
-from src.repositories.interfaces.icommon_repository import ICommonRepository
-from src.services.interfaces.icommon_service import ICommonService
-from src.services.common_service import CommonService
-
-
 from src.depends.repository_depends import get_bank_deposit_repository
 from src.repositories.interfaces.ibankdeposit_repository import IBankDepositRepository
 from src.services.interfaces.ibankdeposit_service import IBankDepositService
@@ -195,13 +189,6 @@ from src.repositories.interfaces.ibankaccount_repository import IBankAccountRepo
 from src.services.interfaces.ibankaccount_service import IBankAccountService
 from src.services.bankaccount_service import BankAccountService
 
-from src.depends.repository_depends import get_bank_transaction_repository
-from src.repositories.interfaces.ibanktransaction_repository import (
-    IBankTransactionRepository,
-)
-from src.services.interfaces.ibanktransaction_service import IBankTransactionService
-from src.services.banktransaction_service import BankTransactionService
-
 
 def get_bank_account_service(
     db: AsyncSession = Depends(get_db),
@@ -215,13 +202,6 @@ def get_bank_account_service(
     return BankAccountService(
         bank_repo=bank_repo, detailitem_service=detailitem_service, db=db
     )
-
-
-def get_bank_transaction_service(
-    repository: IBankTransactionRepository = Depends(get_bank_transaction_repository),
-    db: AsyncSession = Depends(get_db),
-) -> IBankTransactionService:
-    return BankTransactionService(repository, db)
 
 
 def get_account_report_service(
@@ -254,10 +234,14 @@ def get_sales_order_service(
 ) -> ISalesOrderService:
     return SalesOrderService(repository)
 
+
 from src.depends.repository_depends import get_payscalemappings_repository
-from src.repositories.interfaces.ipayscalemappings_repository import IPayScaleMappingRepository
+from src.repositories.interfaces.ipayscalemappings_repository import (
+    IPayScaleMappingRepository,
+)
 from src.services.interfaces.ipayscalemappings_service import IPayScaleMappingService
 from src.services.payscalemappings_service import PayScaleMappingService
+
 
 def get_payscalemapping_service(
     repository: IPayScaleMappingRepository = Depends(get_payscalemappings_repository),
@@ -278,25 +262,18 @@ def get_generatesalary_service(
 ) -> IGenerateSalaryService:
     return GenerateSalaryService(repository)
 
+
 from src.depends.repository_depends import get_salarydetail_repository
 from src.repositories.interfaces.isalarydetail_repository import ISalaryDetailRepository
 from src.services.interfaces.isalarydetail_service import ISalaryDetailService
 from src.services.salarydetail_service import SalaryDetailService
+
 
 def get_salarydetail_service(
     repository: ISalaryDetailRepository = Depends(get_salarydetail_repository),
 ) -> ISalaryDetailService:
     return SalaryDetailService(repository)
 
-from src.depends.repository_depends import get_salarypayment_repository
-from src.repositories.interfaces.isalarypayment_repository import ISalaryPaymentRepository
-from src.services.interfaces.isalarypayment_service import ISalaryPaymentService
-from src.services.salarypayment_service import SalaryPaymentService
-
-def get_salarypayment_service(
-    repository: ISalaryPaymentRepository = Depends(get_salarypayment_repository),
-) -> ISalaryPaymentService:
-    return SalaryPaymentService(repository)
 
 from src.depends.repository_depends import get_quotation_repository
 from src.repositories.interfaces.iquotation_repository import IQuotationRepository
@@ -387,6 +364,48 @@ def get_sales_invoice_service(
     )
 
 
+from src.depends.repository_depends import get_salarypayment_repository
+from src.repositories.interfaces.isalarypayment_repository import (
+    ISalaryPaymentRepository,
+)
+from src.services.interfaces.isalarypayment_service import ISalaryPaymentService
+from src.services.salarypayment_service import SalaryPaymentService
+
+
+def get_salarypayment_service(
+    repository: ISalaryPaymentRepository = Depends(get_salarypayment_repository),
+    journal_service: ICommonJournalService = Depends(get_common_journal_service),
+) -> ISalaryPaymentService:
+    return SalaryPaymentService(repository, journal_service)
+
+
+from src.depends.repository_depends import get_bank_transaction_repository
+from src.repositories.interfaces.ibanktransaction_repository import (
+    IBankTransactionRepository,
+)
+from src.services.interfaces.ibanktransaction_service import IBankTransactionService
+from src.services.banktransaction_service import BankTransactionService
+
+
+def get_bank_transaction_service(
+    repository: IBankTransactionRepository = Depends(get_bank_transaction_repository),
+    db: AsyncSession = Depends(get_db),
+) -> IBankTransactionService:
+    return BankTransactionService(repository, db)
+
+
+from src.depends.repository_depends import get_common_repository
+from src.repositories.interfaces.icommon_repository import ICommonRepository
+from src.services.interfaces.icommon_service import ICommonService
+from src.services.common_service import CommonService
+
+
+def get_common_service(
+    repository: ICommonRepository = Depends(get_common_repository),
+) -> ICommonService:
+    return CommonService(repository)
+
+
 def get_balance_sheet_service(
     repository: IBalanceSheetRepository = Depends(get_balance_sheet_repository),
 ) -> IBalanceSheetService:
@@ -409,12 +428,6 @@ def get_bank_deposit_service(
     repository: IBankDepositRepository = Depends(get_bank_deposit_repository),
 ) -> IBankDepositService:
     return BankDepositService(repository)
-
-
-def get_common_service(
-    repository: ICommonRepository = Depends(get_common_repository),
-) -> ICommonService:
-    return CommonService(repository)
 
 
 def get_assign_permission_service(

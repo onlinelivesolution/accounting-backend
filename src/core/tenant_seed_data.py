@@ -9,6 +9,8 @@ from src.models.company import Company
 from src.models.role_model import Role
 from src.models.permission_model import Permission
 from src.models.permission_action_model import PermissionAction
+from src.models.accountingrule import AccountingRule
+from src.models.accountingruledetail import AccountingRuleDetail
 from src.models.role_permission_action_model import (
     RolePermissionAction,
 )
@@ -133,6 +135,10 @@ async def copy_master_data(database_name: str, email: str, password_hash: str):
             await tenant_db.execute(text("DELETE FROM TaxFreeAmount"))
 
             await tenant_db.execute(text("DELETE FROM TaxSettings"))
+
+            await tenant_db.execute(text("DELETE FROM AccountingRule"))
+
+            await tenant_db.execute(text("DELETE FROM AccountingRuleDetail"))
 
             await tenant_db.commit()
 
@@ -636,7 +642,54 @@ async def copy_master_data(database_name: str, email: str, password_hash: str):
                         taxAmount=i.taxAmount,
                         status=i.status,
                     )
-                    for i in tax_settings 
+                    for i in tax_settings
+                ]
+            )
+
+            await tenant_db.commit()
+
+            # ====================================
+            # COPY ACCOUNTING RULES
+            # ====================================
+
+            accounting_rules_result = await master_db.execute(select(AccountingRule))
+
+            accounting_rules = accounting_rules_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    AccountingRule(
+                        ruleID=i.ruleID,
+                        ruleCode=i.ruleCode,
+                        moduleName=i.moduleName,
+                        description=i.description,
+                        isActive=i.isActive,
+                    )
+                    for i in accounting_rules
+                ]
+            )
+
+            await tenant_db.commit()
+
+            # ====================================
+            # COPY ACCOUNTING RULES DETAILS
+            # ====================================
+
+            accounting_rules_details_result = await master_db.execute(select(AccountingRuleDetail))
+
+            accounting_rules_details = accounting_rules_details_result.scalars().all()
+
+            tenant_db.add_all(
+                [
+                    AccountingRuleDetail(
+                        ruleDetailID=i.ruleDetailID,
+                        ruleID=i.ruleID,
+                        entryType=i.entryType, 
+                        accountCode=i.accountCode,
+                        amountSource=i.amountSource,
+                        isDynamicAccount=i.isDynamicAccount,
+                    )
+                    for i in accounting_rules_details 
                 ]
             )
 
@@ -647,7 +700,7 @@ async def copy_master_data(database_name: str, email: str, password_hash: str):
             # ====================================
             # VERIFY COUNTS
             # ====================================
-
+ 
             control_count_result = await tenant_db.execute(select(ControlItem))
 
             reporting_count_result = await tenant_db.execute(select(ReportingItem))
