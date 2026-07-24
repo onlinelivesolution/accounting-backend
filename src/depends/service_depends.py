@@ -3,7 +3,7 @@ from common.db.db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services.systemadmin_service import SystemAdminService
-from src.services.database import get_async_db
+from src.core.tenant_database import get_tenant_db
 from src.repositories.period__repository import PeriodRepository
 from src.services.period__service import PeriodService
 from src.services.interfaces.idetailitem_service import IDetailItemService
@@ -22,17 +22,18 @@ def get_login_service(repository=Depends(get_login_repository)):
     return LoginService(repository)
 
 
+from src.repositories.detailitem_repository import DetailItemRepository
+from src.services.detailitem_service import DetailItemService
+from src.services.interfaces.idetailitem_service import IDetailItemService
+
+
 def get_detail_item_service(
-    db: AsyncSession = Depends(get_async_db),
+    db: AsyncSession = Depends(get_tenant_db),
 ) -> IDetailItemService:
 
     repository = DetailItemRepository(db)
     return DetailItemService(repository, db)
 
-
-from src.repositories.detailitem_repository import DetailItemRepository
-from src.services.detailitem_service import DetailItemService
-from src.services.interfaces.idetailitem_service import IDetailItemService
 
 from src.depends.repository_depends import get_vatrate_dropdown_repository
 from src.repositories.interfaces.icommondropdown_repository import (
@@ -211,7 +212,7 @@ def get_account_report_service(
 
 
 def get_db_period_service(
-    db: AsyncSession = Depends(get_async_db),
+    db: AsyncSession = Depends(get_tenant_db),
 ):
     repo = PeriodRepository(db)
     return PeriodService(repo)

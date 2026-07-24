@@ -42,12 +42,13 @@ class SalaryPaymentService(ISalaryPaymentService):
             paymentDate=request.paymentDate,
             salaryMonth=request.salaryMonth,
             salaryYear=request.salaryYear,
-            bankAccountID=request.bankAccountID,
+            bankAccountCode=request.bankAccountCode,
             totalAmount=request.totalAmount,
             remarks=request.remarks,
             status=request.status,
             createdBy=current_user["userID"],
             createdDate=datetime.utcnow(),
+            companyCode=request.companyCode,
         )
 
         for item in request.salaryPaymentDetails:
@@ -74,3 +75,6 @@ class SalaryPaymentService(ISalaryPaymentService):
             "paymentNo": payment.paymentNo,
             "message": "Salary payment created successfully.",
         }
+        
+    async def get_next_salary_payment_no(self) -> str:
+        return await self.repository.get_next_salary_payment_no()

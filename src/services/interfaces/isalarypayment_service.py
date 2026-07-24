@@ -24,3 +24,7 @@ class ISalaryPaymentService(ABC):
         self, request: SalaryPaymentCreateRequest
     ) -> SalaryPayment:
         pass
+    
+    @abstractmethod
+    async def get_next_salary_payment_no(self) -> str:
+        pass

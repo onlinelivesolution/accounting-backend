@@ -21,11 +21,12 @@ class SalaryPaymentCreateRequest(BaseModel):
     paymentDate: datetime
     salaryMonth: str
     salaryYear: str
-    bankAccountID: int
+    bankAccountCode: str
     totalAmount: float = Field(..., ge=0)
     remarks: Optional[str] = None
     status: int
     createdDate: datetime
+    companyCode: str
 
     salaryPaymentDetails: List[SalaryPaymentItemRequest]
 
@@ -54,7 +55,7 @@ class SalaryPaymentResponse(BaseModel):
     paymentDate: datetime
     salaryMonth: str
     salaryYear: str
-    bankAccountID: int
+    bankAccountCode: str
     totalAmount: float
     remarks: Optional[str] = None
     status: int

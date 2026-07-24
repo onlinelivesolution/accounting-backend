@@ -42,4 +42,10 @@ async def create_salary_payment(
 ):
     return await service.create_salary_payment(request, current_user)
 
+@router.get("/getNextSalaryPaymentNo")
+async def get_next_salary_payment_no(
+    service: ISalaryPaymentService = Depends(get_salarypayment_service),
+):
+    return {"paymentNo": await service.get_next_salary_payment_no()}
+
 

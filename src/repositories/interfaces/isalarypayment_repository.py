@@ -24,3 +24,7 @@ class ISalaryPaymentRepository(ABC):
     async def create_salary_payment(self, salary_payment: SalaryPayment) -> SalaryPayment:
         pass
     
+    @abstractmethod
+    async def get_next_salary_payment_no(self) -> list:
+        pass 
+    

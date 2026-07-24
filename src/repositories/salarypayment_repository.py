@@ -1,7 +1,7 @@
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import update
-from sqlalchemy.future import select
+from sqlalchemy import select, func, desc
 from sqlalchemy.orm import joinedload
 from typing import Optional
 from sqlalchemy.orm import selectinload
@@ -44,3 +44,13 @@ class SalaryPaymentRepository(GenericRepository[Salary], ISalaryPaymentRepositor
         await self.db.refresh(salary_payment)
 
         return salary_payment
+    
+    async def get_next_salary_payment_no(self) -> str:
+        result = await self.db.execute(select(func.max(SalaryPayment.paymentNo)))
+        last_no = result.scalar()
+
+        if not last_no:
+            return "SPT0000001"
+
+        number = int(last_no.replace("SPT", "")) + 1
+        return f"SPT{number:07d}"

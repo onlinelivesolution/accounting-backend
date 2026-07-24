@@ -21,40 +21,38 @@ from sqlalchemy import select, func, cast, Integer
 from src.models.activitycenter import ActivityCenter
 from src.models.responsibilitycenter import ResponsibilityCenter
 from src.schemas.journal_schema import JournalCreate
-from src.repositories.interfaces.icommonjournal_repository import ICommonJournalRepository
+from src.repositories.interfaces.icommonjournal_repository import (
+    ICommonJournalRepository,
+)
 from common.enum.commenum import DefaultAccount
-from src.repositories.interfaces.icommonjournal_repository import ICommonJournalRepository
+from src.repositories.interfaces.icommonjournal_repository import (
+    ICommonJournalRepository,
+)
+
 VAT_INPUT_ACCOUNT_CODE = "VAT_INPUT"
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime
+
 
 class CommonJournalRepository(GenericRepository[Journal], ICommonJournalRepository):
     def __init__(self, db: AsyncSession):
         super().__init__(Journal, db)
 
-    
-    async def get_vat_detail_item(
-        self,
-        vat_type: str,
-        company_code: str
-    ):
+    async def get_vat_detail_item(self, vat_type: str, company_code: str):
         result = await self.db.execute(
-            select(VatAccountMapping.detailItemCode)
-            .where(
+            select(VatAccountMapping.detailItemCode).where(
                 VatAccountMapping.vatType == vat_type,
                 VatAccountMapping.companyCode == company_code,
-                VatAccountMapping.isActive == True
+                VatAccountMapping.isActive == True,
             )
         )
         return result.scalar_one_or_none()
-    
+
     async def _get_open_period(self):
         result = await self.db.execute(
-            select(AccountingPeriod)
-            .where(AccountingPeriod.isClosed == False)
+            select(AccountingPeriod).where(AccountingPeriod.isClosed == False)
         )
         return result.scalar_one_or_none()
-    
 
     async def get_detail_item_by_account_id(self, account_id: int) -> str:
         result = await self.db.execute(
@@ -63,7 +61,7 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
             .limit(1)
         )
         return result.scalar_one()
-    
+
     async def get_bank_detail_item_by_account_id(self, account_id: int) -> str:
         result = await self.db.execute(
             select(DetailItem.detailItemCode)
@@ -78,10 +76,16 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                 DetailItem.detailItemCode,
                 ReportingItem.reportingItemCode,
                 ControlItem.controlItemCode,
-                ControlItem.fATypeID
+                ControlItem.fATypeID,
             )
-            .join(ReportingItem, DetailItem.reportingItemCode == ReportingItem.reportingItemCode)
-            .join(ControlItem, ReportingItem.controlItemCode == ControlItem.controlItemCode)
+            .join(
+                ReportingItem,
+                DetailItem.reportingItemCode == ReportingItem.reportingItemCode,
+            )
+            .join(
+                ControlItem,
+                ReportingItem.controlItemCode == ControlItem.controlItemCode,
+            )
             .where(DetailItem.detailItemCode == detail_item_code)
         )
         row = result.one()
@@ -117,26 +121,24 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
         journal = Journal(**data)
         self.db.add(journal)
         await self.db.flush()
-    
+
     async def create_opening_balance(self, data: dict):
         journaldetail = JournalDetail(**data)
         self.db.add(journaldetail)
         await self.db.flush()
-        
+
     async def create_bank_deposit_journal(self, data: dict):
         journal = Journal(**data)
         self.db.add(journal)
         await self.db.flush()
-        
+
     async def create_bank_withdraw_journal(self, data: dict):
         journal = Journal(**data)
         self.db.add(journal)
         await self.db.flush()
-        
+
     async def get_next_control_item_code(self) -> str:
-        stmt = select(
-            func.max(cast(ControlItem.controlItemCode, Integer))
-        )
+        stmt = select(func.max(cast(ControlItem.controlItemCode, Integer)))
         result = await self.db.execute(stmt)
         max_code = result.scalar()
 
@@ -146,11 +148,10 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
             next_code = max_code + 1
 
         return f"{next_code:02d}"
-    
+
     async def get_vat_rate_by_id(self, vat_rate_id: int) -> Decimal:
         result = await self.db.execute(
-            select(VATRates.ratePercent)
-            .where(VATRates.vATRateID == vat_rate_id)
+            select(VATRates.ratePercent).where(VATRates.vATRateID == vat_rate_id)
         )
 
         rate_percent = result.scalar()
@@ -184,7 +185,7 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
             description=request.description,
             periodID=period.periodID,
             fiscalYear=fiscal_year,
-            createdDate=datetime.utcnow()
+            createdDate=datetime.utcnow(),
         )
 
         self.db.add(header)
@@ -218,7 +219,7 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                     debitAmount=base_amount,
                     creditAmount=Decimal("0.00"),
                     narration=row.narration,
-                    fiscalYear=fiscal_year
+                    fiscalYear=fiscal_year,
                 )
             )
 
@@ -235,7 +236,7 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                         creditAmount=Decimal("0.00"),
                         narration="VAT Input",
                         ratePercent=rate_percent,
-                        fiscalYear=fiscal_year
+                        fiscalYear=fiscal_year,
                     )
                 )
 
@@ -247,13 +248,13 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                     debitAmount=Decimal("0.00"),
                     creditAmount=total_amount,
                     narration=row.narration,
-                    fiscalYear=fiscal_year
+                    fiscalYear=fiscal_year,
                 )
             )
 
         await self.db.commit()
         return header
-    
+
     async def get_period_by_date(self, companyCode: str, txn_date):
 
         # Convert datetime to date
@@ -271,8 +272,7 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
         print("Database:", db_name.scalar())
 
         # Debug: Show all Accounting Periods
-        all_periods = await self.db.execute(
-            text("""
+        all_periods = await self.db.execute(text("""
                 SELECT
                     periodID,
                     companyCode,
@@ -281,21 +281,17 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
                     isClosed
                 FROM AccountingPeriod
                 ORDER BY periodStart
-            """)
-        )
+            """))
 
         print("Accounting Periods:")
         for row in all_periods.fetchall():
             print(row)
 
         # ORM Query
-        stmt = (
-            select(AccountingPeriod)
-            .where(
-                AccountingPeriod.companyCode == companyCode,
-                AccountingPeriod.periodStart <= txn_date,
-                AccountingPeriod.periodEnd >= txn_date,
-            )
+        stmt = select(AccountingPeriod).where(
+            AccountingPeriod.companyCode == companyCode,
+            AccountingPeriod.periodStart <= txn_date,
+            AccountingPeriod.periodEnd >= txn_date,
         )
 
         result = await self.db.execute(stmt)
@@ -313,7 +309,7 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
         print("=" * 60)
 
         return period
-    
+
     async def create_journal(self, header: JournalHeader, details: list[JournalDetail]):
         self.db.add(header)
         await self.db.flush()  # to get journalHeaderID
@@ -322,7 +318,7 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
         self.db.add_all(details)
         # await self.db.commit()
         return header
-    
+
     async def create_invoice_journal_entry(self, data: dict):
 
         # assuming you already have model
@@ -333,4 +329,16 @@ class CommonJournalRepository(GenericRepository[Journal], ICommonJournalReposito
 
         return journal
 
-    
+    async def create_journal(
+        self,
+        header: JournalHeader,
+        details: list[JournalDetail],
+    ):
+        self.db.add(header)
+        await self.db.flush()
+
+        for d in details:
+            d.journalHeaderID = header.journalHeaderID
+            self.db.add(d)
+
+        await self.db.commit()

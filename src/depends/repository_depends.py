@@ -232,6 +232,10 @@ from src.repositories.common_repository import CommonRepository
 def get_common_repository(db: AsyncSession = Depends(get_tenant_db)):
     return CommonRepository(db)
 
+from src.repositories.detailitem_repository import DetailItemRepository
+def get_detailitem_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return DetailItemRepository(db)
+
 
 def get_account_report_repository(
     db: AsyncSession = Depends(get_db),
