@@ -14,6 +14,11 @@ class SalaryPaymentDetail(Base):
     salaryID = Column(Integer, nullable=True)
     employeeID = Column(Integer, nullable=True)
     amount = Column(Numeric(18, 2), nullable=True)
+    taxAmount = Column(Numeric(18, 2), nullable=True)
+    pfAmount = Column(Numeric(18, 2), nullable=True)
+    loanAdjust = Column(Numeric(18, 2), nullable=True)
+    adjustAdvanceSalary = Column(Numeric(18, 2), nullable=True)
+    adjustUnpaidLeave = Column(Numeric(18, 2), nullable=True)
     paymentStatus = Column(Integer, nullable=True)
 
 

@@ -30,6 +30,8 @@ class SalaryPaymentService(ISalaryPaymentService):
         return [SalaryRead.from_orm(salary) for salary in salaries]
 
         # create new sales invoice
+    
+    from datetime import datetime
 
     async def create_salary_payment(
         self,
@@ -58,23 +60,99 @@ class SalaryPaymentService(ISalaryPaymentService):
                     salaryID=item.salaryID,
                     employeeID=item.employeeID,
                     amount=item.amount,
+
+                    taxAmount=item.taxAmount,
+                    pfAmount=item.pfAmount,
+                    loanAdjust=item.loanAdjust,
+                    adjustAdvanceSalary=item.adjustAdvanceSalary,
+                    adjustUnpaidLeave=item.adjustUnpaidLeave,
+                    # otherDeductions=item.otherDeductions,
+
                     paymentStatus=item.paymentStatus,
                 )
             )
 
-        # Save Payment
-        payment = await self.repository.create_salary_payment(salary_payment)
+        # ----------------------------------------
+        # Save Salary Payment
+        # ----------------------------------------
+        payment = await self.repository.create_salary_payment(
+            salary_payment
+        )
 
-        # ===============================
+        # ----------------------------------------
+        # Reload with Details (IMPORTANT)
+        # ----------------------------------------
+        payment = await self.repository.get_salary_payment_by_id(
+            payment.salaryPaymentID
+        )
+
+        if payment is None:
+            raise Exception("Salary Payment not found after saving.")
+
+        # ----------------------------------------
         # Create Journal
-        # ===============================
-        await self.journal_service.post_salary_payment_journal(payment)
+        # ----------------------------------------
+        await self.journal_service.post_salary_payment_journal(
+            payment
+        )
 
         return {
             "salaryPaymentID": payment.salaryPaymentID,
             "paymentNo": payment.paymentNo,
             "message": "Salary payment created successfully.",
         }
+
+    # async def create_salary_payment(
+    #     self,
+    #     request: SalaryPaymentCreateRequest,
+    #     current_user: dict,
+    # ):
+
+    #     salary_payment = SalaryPayment(
+    #         paymentNo=request.paymentNo,
+    #         paymentDate=request.paymentDate,
+    #         salaryMonth=request.salaryMonth,
+    #         salaryYear=request.salaryYear,
+    #         bankAccountCode=request.bankAccountCode,
+    #         totalAmount=request.totalAmount,
+    #         remarks=request.remarks,
+    #         status=request.status,
+    #         createdBy=current_user["userID"],
+    #         createdDate=datetime.utcnow(),
+    #         companyCode=request.companyCode,
+    #     )
+
+    #     for item in request.salaryPaymentDetails:
+
+    #         salary_payment.salaryPaymentDetails.append(
+    #             SalaryPaymentDetail(
+    #                 salaryID=item.salaryID,
+    #                 employeeID=item.employeeID,
+    #                 amount=item.amount,
+                                        
+    #                 taxAmount=item.taxAmount,
+    #                 pfAmount=item.pfAmount,
+    #                 loanAdjust=item.loanAdjust,
+    #                 adjustAdvanceSalary=item.adjustAdvanceSalary,
+    #                 adjustUnpaidLeave=item.adjustUnpaidLeave,
+    #                 paymentStatus=item.paymentStatus,
+                    
+    #             )
+    #         )
+
+    #     # Save Payment
+    #     payment = await self.repository.create_salary_payment(salary_payment)
+
+    #     # ===============================
+    #     # Create Journal
+    #     # ===============================
+    #     await self.journal_service.post_salary_payment_journal(payment)
+
+    #     return {
+    #         "salaryPaymentID": payment.salaryPaymentID,
+    #         "paymentNo": payment.paymentNo,
+    #         "message": "Salary payment created successfully.",
+    #     }
         
     async def get_next_salary_payment_no(self) -> str:
         return await self.repository.get_next_salary_payment_no()

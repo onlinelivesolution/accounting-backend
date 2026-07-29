@@ -18,6 +18,10 @@ class SalaryPayment(Base):
     createdBy = Column(Integer, nullable=True)
     createdDate = Column(DateTime, nullable=True, server_default=func.now())
     bankAccountCode = Column(String(50))
+    # taxAccountCode = Column(String(50))
+    # pfAccountCode = Column(String(50))
+    # loanAccountCode = Column(String(50))
+    # advanceSalaryAccountCode = Column(String(50))
     companyCode = Column(String(2), nullable=True)
 
 

@@ -176,13 +176,6 @@ from src.repositories.interfaces.iperiod__repository import IPeriodRepository
 from src.services.interfaces.iperiod__service import IPeriodService
 from src.services.period__service import PeriodService
 
-from src.depends.repository_depends import get_account_report_repository
-from src.repositories.interfaces.iaccountreport__repository import (
-    IAccountReportRepository,
-)
-from src.services.interfaces.iaccountreport__service import IAccountReportService
-from src.services.accountreport__service import AccountReportService
-
 from src.repositories.detailitem_repository import DetailItemRepository
 
 from src.depends.repository_depends import get_bank_account_repository
@@ -204,6 +197,12 @@ def get_bank_account_service(
         bank_repo=bank_repo, detailitem_service=detailitem_service, db=db
     )
 
+from src.depends.repository_depends import get_account_report_repository
+from src.repositories.interfaces.iaccountreport__repository import (
+    IAccountReportRepository,
+)
+from src.services.interfaces.iaccountreport__service import IAccountReportService
+from src.services.accountreport__service import AccountReportService
 
 def get_account_report_service(
     repository: IAccountReportRepository = Depends(get_account_report_repository),

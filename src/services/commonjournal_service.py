@@ -4,6 +4,8 @@ from typing import List
 from fastapi import HTTPException
 from collections import defaultdict
 from common.enum.commenum import DefaultAccount
+from common.journal.journal_amount_resolver import JournalAmountResolver
+from src.core.dynamic_account_resolver import DynamicAccountResolver
 from src.services.interfaces.icommonjournal_service import ICommonJournalService
 from src.repositories.interfaces.icommonjournal_repository import (
     ICommonJournalRepository,
@@ -11,7 +13,7 @@ from src.repositories.interfaces.icommonjournal_repository import (
 from src.repositories.interfaces.iaccountingrule_repository import (
     IAccountingRuleRepository,
 )
-from common.journal.journal_amount_resolver import JournalAmountResolver
+
 from sqlalchemy import select
 from src.models.accountingperiod import AccountingPeriod
 from src.models.journalheader_model import JournalHeader
@@ -345,7 +347,7 @@ class CommonJournalService(ICommonJournalService):
 
             # Use repository to insert header + details
             await self.repository.create_journal(header_obj, line_objs)
-    
+
     async def post_salary_payment_journal(self, payment):
 
         period = await self.repository.get_period_by_date(
@@ -391,7 +393,17 @@ class CommonJournalService(ICommonJournalService):
 
                 # Dynamic Account (Bank / Cash)
                 if d.isDynamicAccount:
-                    account_code = payment.bankAccountCode
+
+                    account_code = DynamicAccountResolver.resolve(
+                        payment, amount_source
+                    )
+
+                    print("Resolved Account:", account_code)
+
+                if not account_code:
+                    raise Exception(
+                        f"No account resolved for Amount Source '{amount_source}'"
+                    )
 
                 debit = amount if d.entryType.upper() == "DEBIT" else 0
                 credit = amount if d.entryType.upper() == "CREDIT" else 0

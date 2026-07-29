@@ -1,23 +1,29 @@
 from typing import List, Optional
 from datetime import date
-from src.repositories.interfaces.iaccountreport__repository import IAccountReportRepository
+from src.repositories.interfaces.iaccountreport__repository import (
+    IAccountReportRepository,
+)
 from src.services.interfaces.iaccountreport__service import IAccountReportService
 from src.schemas.accountreport_schema import AccountReportRead
 from decimal import Decimal
 from collections import defaultdict
 
+
 class AccountReportService(IAccountReportService):
     def __init__(self, repository: IAccountReportRepository):
         self.repository = repository
-    
-    async def get_balance_sheet(self, as_of_date):
-        rows = await self.repository.get_balance_sheet(as_of_date)
 
-        result = {
-            "assets": [],
-            "liabilities": [],
-            "equity": []
-        }
+    async def get_balance_sheet(
+        self,
+        from_date: date,
+        to_date: date,
+    ):
+        rows = await self.repository.get_balance_sheet(
+            from_date,
+            to_date,
+        )
+
+        result = {"assets": [], "liabilities": [], "equity": []}
 
         for r in rows:
             group = r["BalanceSheetGroup"]
@@ -30,22 +36,37 @@ class AccountReportService(IAccountReportService):
                 result["equity"].append(r)
 
         return result
-    
-    async def get_trial_balance(self, as_of_date):
-        rows = await self.repository.get_trial_balance(as_of_date)
 
-        total_debit = sum(r["DebitBalance"] for r in rows)
-        total_credit = sum(r["CreditBalance"] for r in rows)
+    async def get_trial_balance(
+        self,
+        from_date: date,
+        to_date: date,
+    ):
+        rows = await self.repository.get_trial_balance(
+            from_date,
+            to_date,
+        )
+
+        total_debit = sum(float(r["DebitBalance"] or 0) for r in rows)
+
+        total_credit = sum(float(r["CreditBalance"] or 0) for r in rows)
 
         return {
             "rows": rows,
             "totalDebit": total_debit,
             "totalCredit": total_credit,
-            "isBalanced": total_debit == total_credit
+            "isBalanced": round(total_debit, 2) == round(total_credit, 2),
         }
-        
-    async def get_profit_loss(self, as_of_date):
-        rows = await self.repository.get_profit_loss(as_of_date)
+
+    async def get_profit_loss(
+        self,
+        from_date: date,
+        to_date: date,
+    ):
+        rows = await self.repository.get_profit_loss(
+            from_date,
+            to_date,
+        )
 
         income = []
         expense = []
@@ -82,9 +103,9 @@ class AccountReportService(IAccountReportService):
             "totalCOGS": total_cogs,
             "totalExpense": total_expense,
             "grossProfit": gross_profit,
-            "netProfit": net_profit
+            "netProfit": net_profit,
         }
-    
+
     async def get_ledger(
         self,
         detailItemCode: str,
@@ -93,9 +114,7 @@ class AccountReportService(IAccountReportService):
     ) -> List[AccountReportRead]:
 
         rows = await self.repository.get_ledger_entries(
-            detailItemCode,
-            start_date,
-            end_date
+            detailItemCode, start_date, end_date
         )
 
         balance = Decimal("0")
@@ -122,7 +141,7 @@ class AccountReportService(IAccountReportService):
                     normalBalance=row["normalBalance"],
                     debit=debit,
                     credit=credit,
-                    balance=balance
+                    balance=balance,
                 )
             )
 

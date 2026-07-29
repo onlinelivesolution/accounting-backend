@@ -13,7 +13,8 @@ from src.schemas.salaryschema import SalaryRead, SalaryDetailRead
 from src.repositories.interfaces.isalarypayment_repository import (
     ISalaryPaymentRepository,
 )
-
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from common.generic.generic_repository import GenericRepository
 
 
@@ -31,7 +32,21 @@ class SalaryPaymentRepository(GenericRepository[Salary], ISalaryPaymentRepositor
         )
         result = await self.db.execute(stmt)
         return result.scalars().unique().all()
-    
+
+    async def get_salary_payment_by_id(
+        self,
+        salaryPaymentID: int,
+    ):
+
+        stmt = (
+            select(SalaryPayment)
+            .options(selectinload(SalaryPayment.salaryPaymentDetails))
+            .where(SalaryPayment.salaryPaymentID == salaryPaymentID)
+        )
+
+        result = await self.db.execute(stmt)
+
+        return result.scalar_one_or_none()
 
     # create salary payment and salary payment detail
     async def create_salary_payment(
@@ -44,7 +59,7 @@ class SalaryPaymentRepository(GenericRepository[Salary], ISalaryPaymentRepositor
         await self.db.refresh(salary_payment)
 
         return salary_payment
-    
+
     async def get_next_salary_payment_no(self) -> str:
         result = await self.db.execute(select(func.max(SalaryPayment.paymentNo)))
         last_no = result.scalar()

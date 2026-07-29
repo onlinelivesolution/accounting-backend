@@ -5,15 +5,15 @@ from datetime import date
 
 class IAccountReportService(ABC):
     @abstractmethod
-    async def get_balance_sheet(self, as_of_date: date):
+    async def get_balance_sheet(self, from_date: date, to_date: date):
         pass
     
     @abstractmethod
-    async def get_trial_balance(self, as_of_date: date):
+    async def get_trial_balance(self, from_date: date, to_date: date):
         pass
     
     @abstractmethod
-    async def get_profit_loss(self, as_of_date: date):
+    async def get_profit_loss(self, from_date: date, to_date: date):
         pass
     
     @abstractmethod

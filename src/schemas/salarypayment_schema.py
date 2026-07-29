@@ -11,6 +11,12 @@ class SalaryPaymentItemRequest(BaseModel):
     salaryID: int
     employeeID: int
     amount: float = Field(..., gt=0)
+    
+    taxAmount: float = 0
+    pfAmount: float = 0
+    loanAdjust: float = 0
+    adjustAdvanceSalary: float = 0
+    adjustUnpaidLeave: float = 0
     paymentStatus: int
 
     model_config = ConfigDict(from_attributes=True)

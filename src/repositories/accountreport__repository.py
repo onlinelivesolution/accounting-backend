@@ -8,14 +8,23 @@ from src.models.journaldetail_model import JournalDetail
 from src.models.journalheader_model import JournalHeader
 from src.schemas.accountreport_schema import AccountReportRead
 from common.generic.generic_repository import GenericRepository
-from src.repositories.interfaces.iaccountreport__repository import IAccountReportRepository
+from src.repositories.interfaces.iaccountreport__repository import (
+    IAccountReportRepository,
+)
 
-class AccountReportRepository(GenericRepository[JournalDetail], IAccountReportRepository):
+
+class AccountReportRepository(
+    GenericRepository[JournalDetail], IAccountReportRepository
+):
     def __init__(self, db: AsyncSession):
         super().__init__(JournalDetail, db)
         self.db = db
 
-    async def get_balance_sheet(self, as_of_date: date):
+    async def get_balance_sheet(
+        self,
+        from_date: date,
+        to_date: date,
+    ):
         query = text(""" 
                 SELECT
             am.ControlItem                    AS BalanceSheetGroup,
@@ -49,7 +58,8 @@ class AccountReportRepository(GenericRepository[JournalDetail], IAccountReportRe
             ON jd.DetailItemCode = di.DetailItemCode
         LEFT JOIN dbo.JournalHeader jh
             ON jh.JournalHeaderID = jd.JournalHeaderID
-            AND jh.JournalDate <= :as_of_date
+        AND CAST(jh.JournalDate AS DATE)
+            BETWEEN :from_date AND :to_date
 
         WHERE
             am.FinancialStatement = 'BS'
@@ -83,87 +93,111 @@ class AccountReportRepository(GenericRepository[JournalDetail], IAccountReportRe
 
         result = await self.db.execute(
             query,
-            {"as_of_date": as_of_date}
+            {
+                "from_date": from_date,
+                "to_date": to_date,
+            },
         )
+
         return result.mappings().all()
-    
-    async def get_trial_balance(self, as_of_date: date):
+
+    async def get_trial_balance(
+        self,
+        from_date: date,
+        to_date: date,
+    ):
         query = text("""
-                SELECT
-            ci.ControlItemName,
-            ri.ReportingItemName,
-            di.DetailItemCode,
-            di.DetailItemName,
-            am.NormalBalance,
+            SELECT
+                ci.ControlItemName,
+                ri.ReportingItemName,
+                di.DetailItemCode,
+                di.DetailItemName,
+                am.NormalBalance,
 
-            SUM(ISNULL(jd.DebitAmount, 0))  AS TotalDebit,
-            SUM(ISNULL(jd.CreditAmount, 0)) AS TotalCredit,
+                SUM(ISNULL(jd.DebitAmount,0))  AS TotalDebit,
+                SUM(ISNULL(jd.CreditAmount,0)) AS TotalCredit,
 
-            CASE
-                WHEN am.NormalBalance = 'Debit'
+                CASE
+                    WHEN am.NormalBalance = 'Debit'
                     THEN
                         CASE
-                            WHEN SUM(ISNULL(jd.DebitAmount, 0))
-                            - SUM(ISNULL(jd.CreditAmount, 0)) > 0
-                            THEN SUM(ISNULL(jd.DebitAmount, 0))
-                            - SUM(ISNULL(jd.CreditAmount, 0))
+                            WHEN SUM(ISNULL(jd.DebitAmount,0))
+                            - SUM(ISNULL(jd.CreditAmount,0)) > 0
+                            THEN
+                                SUM(ISNULL(jd.DebitAmount,0))
+                            - SUM(ISNULL(jd.CreditAmount,0))
                             ELSE 0
                         END
-                ELSE 0
-            END AS DebitBalance,
+                    ELSE 0
+                END AS DebitBalance,
 
-            CASE
-                WHEN am.NormalBalance = 'Credit'
+                CASE
+                    WHEN am.NormalBalance = 'Credit'
                     THEN
                         CASE
-                            WHEN SUM(ISNULL(jd.CreditAmount, 0))
-                            - SUM(ISNULL(jd.DebitAmount, 0)) > 0
-                            THEN SUM(ISNULL(jd.CreditAmount, 0))
-                            - SUM(ISNULL(jd.DebitAmount, 0))
+                            WHEN SUM(ISNULL(jd.CreditAmount,0))
+                            - SUM(ISNULL(jd.DebitAmount,0)) > 0
+                            THEN
+                                SUM(ISNULL(jd.CreditAmount,0))
+                            - SUM(ISNULL(jd.DebitAmount,0))
                             ELSE 0
                         END
-                ELSE 0
-            END AS CreditBalance
+                    ELSE 0
+                END AS CreditBalance
 
-        FROM dbo.AccountMapping am
-        JOIN dbo.ReportingItem ri
-            ON ri.ReportingItemName = am.AccountMappingType
-        JOIN dbo.ControlItem ci
-            ON ci.ControlItemCode = ri.ControlItemCode
-        JOIN dbo.DetailItem di
-            ON di.ReportingItemCode = ri.ReportingItemCode
+            FROM AccountMapping am
+
+            INNER JOIN ReportingItem ri
+                ON ri.ReportingItemName = am.AccountMappingType
+
+            INNER JOIN ControlItem ci
+                ON ci.ControlItemCode = ri.ControlItemCode
+
+            INNER JOIN DetailItem di
+                ON di.ReportingItemCode = ri.ReportingItemCode
             AND di.IsActive = 1
 
-        LEFT JOIN dbo.JournalDetail jd
-            ON jd.DetailItemCode = di.DetailItemCode
-        LEFT JOIN dbo.JournalHeader jh
-            ON jh.JournalHeaderID = jd.JournalHeaderID
-            AND jh.JournalDate <= :as_of_date
+            LEFT JOIN JournalDetail jd
+                ON jd.DetailItemCode = di.DetailItemCode
 
-        GROUP BY
-            ci.ControlItemName,
-            ri.ReportingItemName,
-            di.DetailItemCode,
-            di.DetailItemName,
-            am.NormalBalance
+            LEFT JOIN JournalHeader jh
+                ON jh.JournalHeaderID = jd.JournalHeaderID
+            AND CAST(jh.JournalDate AS DATE)
+                BETWEEN :from_date AND :to_date
 
-        HAVING
-            SUM(ISNULL(jd.DebitAmount, 0)) <> 0
-            OR SUM(ISNULL(jd.CreditAmount, 0)) <> 0
+            GROUP BY
+                ci.ControlItemName,
+                ri.ReportingItemName,
+                di.DetailItemCode,
+                di.DetailItemName,
+                am.NormalBalance
 
-        ORDER BY
-            ci.ControlItemName,
-            ri.ReportingItemName,
-            di.DetailItemName;
+            HAVING
+                SUM(ISNULL(jd.DebitAmount,0)) <> 0
+                OR
+                SUM(ISNULL(jd.CreditAmount,0)) <> 0
 
+            ORDER BY
+                ci.ControlItemName,
+                ri.ReportingItemName,
+                di.DetailItemCode
         """)
+
         result = await self.db.execute(
             query,
-            {"as_of_date": as_of_date}
+            {
+                "from_date": from_date,
+                "to_date": to_date,
+            },
         )
+
         return result.mappings().all()
-    
-    async def get_profit_loss(self, as_of_date: date):
+
+    async def get_profit_loss(
+        self,
+        from_date: date,
+        to_date: date,
+    ):
         query = text("""
                 SELECT
             ci.ControlItemName,
@@ -197,7 +231,8 @@ class AccountReportRepository(GenericRepository[JournalDetail], IAccountReportRe
             ON jd.DetailItemCode = di.DetailItemCode
         LEFT JOIN dbo.JournalHeader jh
             ON jh.JournalHeaderID = jd.JournalHeaderID
-            AND jh.JournalDate <= :as_of_date
+        AND CAST(jh.JournalDate AS DATE)
+            BETWEEN :from_date AND :to_date
 
         WHERE
             am.FinancialStatement = 'PL'
@@ -222,10 +257,14 @@ class AccountReportRepository(GenericRepository[JournalDetail], IAccountReportRe
         """)
         result = await self.db.execute(
             query,
-            {"as_of_date": as_of_date}
+            {
+                "from_date": from_date,
+                "to_date": to_date,
+            },
         )
+
         return result.mappings().all()
-    
+
     async def get_ledger_entries(
         self,
         detailItemCode: str,
@@ -257,10 +296,7 @@ class AccountReportRepository(GenericRepository[JournalDetail], IAccountReportRe
         if end_date:
             query = query.where(JournalHeader.journalDate <= end_date)
 
-        query = query.order_by(
-            JournalHeader.journalDate,
-            JournalHeader.journalID
-        )
+        query = query.order_by(JournalHeader.journalDate, JournalHeader.journalID)
 
         result = await self.db.execute(query)
         return result.mappings().all()
