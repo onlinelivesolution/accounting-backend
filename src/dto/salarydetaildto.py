@@ -18,7 +18,7 @@ class SalaryDetailDTO(BaseModel):
     overtime: Optional[float] = 0
     otherAllowance: Optional[float] = 0   
     grossEarnings: Optional[float] = 0
-    adjustUnPaidLeave: Optional[float] = 0
+    adjustUnpaidLeave: Optional[float] = 0
     taxAmount: Optional[float] = 0
     pFAmount: Optional[float] = 0
     employerContribution: Optional[float] = 0

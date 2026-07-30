@@ -15,7 +15,7 @@ class SalaryDetailRead(BaseModel):
     overtime: float
     otherAllowance: float
     grossEarnings: float
-    adjustUnPaidLeave: float
+    adjustUnpaidLeave: float
     taxAmount: float
     pFAmount: float
     employerContribution: float

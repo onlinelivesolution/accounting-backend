@@ -23,6 +23,11 @@ class DynamicAccountResolver:
                 "advanceSalaryAccountCode",
                 None,
             ),
+            "adjustunpaidleave": getattr(
+                payment,
+                "unpaidLeaveAccountCode",
+                None,
+            ),
         }
 
         return mapping.get(amount_source)

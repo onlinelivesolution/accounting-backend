@@ -57,7 +57,7 @@ class GenerateSalaryService(IGenerateSalaryService):
                     overtime=d.overtime,
                     otherAllowance=d.otherAllowance,
                     grossEarnings=d.grossEarnings,
-                    adjustUnPaidLeave=d.adjustUnPaidLeave,
+                    adjustUnpaidLeave=d.adjustUnpaidLeave,
                     taxAmount=d.taxAmount,
                     pFAmount=d.pFAmount,
                     employerContribution=d.employerContribution,

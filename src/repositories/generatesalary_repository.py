@@ -166,7 +166,7 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
                 grossEarnings=float(round(gross, 2)),
                 taxAmount=float(round(tax_amount, 2)),
                 loanAdjust=float(round(loan_deduction, 2)),
-                adjustUnPaidLeave=float(round(adjust_Unpaid_Leave_Amount, 2)),
+                adjustUnpaidLeave=float(round(adjust_Unpaid_Leave_Amount, 2)),
                 adjustAdvanceSalary=float(round(advance_salary_amount, 2)),
                 totalDeduction=float(round(total_deduction, 2)),
                 netEarnings=float(round(net_earning, 2)),

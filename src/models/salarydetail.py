@@ -18,7 +18,7 @@ class SalaryDetail(Base):
     overtime               = Column(Numeric(18, 2), nullable=True)
     otherAllowance         = Column(Numeric(18, 2), nullable=True)
     grossEarnings          = Column(Numeric(18, 2), nullable=True)
-    adjustUnPaidLeave      = Column(Numeric(18, 2), nullable=True)
+    adjustUnpaidLeave      = Column(Numeric(18, 2), nullable=True)
     taxAmount              = Column(Numeric(18, 2), nullable=True)
     pFAmount               = Column(Numeric(18, 2), nullable=True)
     employerContribution   = Column(Numeric(18, 2), nullable=True)
