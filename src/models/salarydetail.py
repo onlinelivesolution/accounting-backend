@@ -20,7 +20,7 @@ class SalaryDetail(Base):
     grossEarnings          = Column(Numeric(18, 2), nullable=True)
     adjustUnpaidLeave      = Column(Numeric(18, 2), nullable=True)
     taxAmount              = Column(Numeric(18, 2), nullable=True)
-    pFAmount               = Column(Numeric(18, 2), nullable=True)
+    pfAmount               = Column(Numeric(18, 2), nullable=True)
     employerContribution   = Column(Numeric(18, 2), nullable=True)
     supplementaryPF        = Column(Numeric(18, 2), nullable=True)
     loanAdjust             = Column(Numeric(18, 2), nullable=True)

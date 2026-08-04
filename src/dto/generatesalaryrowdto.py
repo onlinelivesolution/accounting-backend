@@ -10,6 +10,7 @@ class GenerateSalaryRowDTO(BaseModel):
     
     otherAllowance: Optional[float] = 0
     houseRentDeduction: Optional[float] = 0
+    pfDeduction: Optional[float] = 0
     excessMobileBill: Optional[float] = 0
     otherDeduction: Optional[float] = 0
     

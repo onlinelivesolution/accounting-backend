@@ -59,7 +59,7 @@ class GenerateSalaryService(IGenerateSalaryService):
                     grossEarnings=d.grossEarnings,
                     adjustUnpaidLeave=d.adjustUnpaidLeave,
                     taxAmount=d.taxAmount,
-                    pFAmount=d.pFAmount,
+                    pfAmount=d.pfAmount,
                     employerContribution=d.employerContribution,
                     supplementaryPF=d.supplementaryPF,
                     loanAdjust=d.loanAdjust,

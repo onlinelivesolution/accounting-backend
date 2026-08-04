@@ -14,6 +14,7 @@ class SalaryPaymentItemRequest(BaseModel):
     
     taxAmount: float = 0
     pfAmount: float = 0
+    employerContribution: float = 0
     loanAdjust: float = 0
     adjustAdvanceSalary: float = 0
     adjustUnpaidLeave: float = 0

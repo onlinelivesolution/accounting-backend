@@ -350,6 +350,9 @@ class CommonJournalService(ICommonJournalService):
 
     async def post_salary_payment_journal(self, payment):
 
+        # ============================================
+        # Get Accounting Period
+        # ============================================
         period = await self.repository.get_period_by_date(
             payment.companyCode,
             payment.paymentDate,
@@ -362,19 +365,43 @@ class CommonJournalService(ICommonJournalService):
                 f"Date={payment.paymentDate}"
             )
 
-        periodID = period.periodID
-        fiscal_year = period.fiscalYear
-
+        # ============================================
+        # Get Accounting Rule
+        # ============================================
         rule = await self.rule_repository.get_rule("SALARY_PAYMENT")
 
         if not rule:
             raise Exception("Accounting Rule 'SALARY_PAYMENT' not configured")
 
+        # ============================================
+        # Group Rule Details
+        # ============================================
         grouped = defaultdict(list)
 
         for d in rule.details:
             grouped[d.amountSource].append(d)
 
+        # ============================================
+        # Create ONE Journal Header
+        # ============================================
+        header_obj = JournalHeader(
+            journalDate=payment.paymentDate,
+            referenceNo=payment.paymentNo,
+            description=f"Salary Payment {payment.salaryMonth}/{payment.salaryYear}",
+            journalType="GENERAL",
+            fiscalYear=period.fiscalYear,
+            periodID=period.periodID,
+            createdDate=datetime.utcnow(),
+        )
+
+        # ============================================
+        # All Journal Details
+        # ============================================
+        line_objs = []
+
+        # ============================================
+        # Process Every Amount Source
+        # ============================================
         for amount_source, details in grouped.items():
 
             amount = JournalAmountResolver.get_amount(
@@ -382,65 +409,105 @@ class CommonJournalService(ICommonJournalService):
                 amount_source,
             )
 
-            if amount == 0:
+            print("--------------------------------")
+            print("Amount Source :", amount_source)
+            print("Amount        :", amount)
+            print("--------------------------------")
+
+            if amount <= 0:
                 continue
 
-            line_objs = []
+            pair_lines = []
 
             for d in details:
 
-                account_code = d.accountCode
-
-                # Dynamic Account (Bank / Cash)
+                # -----------------------------
+                # Resolve Account
+                # -----------------------------
                 if d.isDynamicAccount:
-
                     account_code = DynamicAccountResolver.resolve(
-                        payment, amount_source
+                        payment,
+                        amount_source,
                     )
+                else:
+                    account_code = d.accountCode
 
-                    print("Resolved Account:", account_code)
+                print(
+                    f"{amount_source} | "
+                    f"{d.entryType} | "
+                    f"Dynamic={d.isDynamicAccount} | "
+                    f"Account={account_code}"
+                )
 
                 if not account_code:
                     raise Exception(
-                        f"No account resolved for Amount Source '{amount_source}'"
+                        f"No account configured for Amount Source '{amount_source}'"
                     )
 
                 debit = amount if d.entryType.upper() == "DEBIT" else 0
                 credit = amount if d.entryType.upper() == "CREDIT" else 0
 
-                line_objs.append(
+                pair_lines.append(
                     JournalDetail(
                         journalType="GENERAL",
                         detailItemCode=account_code,
                         debitAmount=debit,
                         creditAmount=credit,
                         narration=f"{payment.paymentNo} - {amount_source}",
-                        fiscalYear=fiscal_year,
+                        fiscalYear=period.fiscalYear,
                     )
                 )
 
-            total_debit = sum(l.debitAmount for l in line_objs)
-            total_credit = sum(l.creditAmount for l in line_objs)
+            # ============================================
+            # Validate THIS pair
+            # ============================================
+            pair_debit = sum(float(x.debitAmount) for x in pair_lines)
+            pair_credit = sum(float(x.creditAmount) for x in pair_lines)
 
-            if round(total_debit, 2) != round(total_credit, 2):
+            print(
+                f"Pair -> {amount_source} | "
+                f"Debit={pair_debit} | "
+                f"Credit={pair_credit}"
+            )
+
+            if round(pair_debit, 2) != round(pair_credit, 2):
                 raise Exception(
-                    f"Salary Payment journal not balanced ({amount_source})"
+                    f"Journal not balanced for '{amount_source}'. "
+                    f"Debit={pair_debit}, Credit={pair_credit}"
                 )
 
-            header_obj = JournalHeader(
-                journalDate=payment.paymentDate,
-                referenceNo=f"{payment.paymentNo}-{amount_source}",
-                description=f"Salary Payment ({amount_source})",
-                journalType="GENERAL",
-                fiscalYear=fiscal_year,
-                periodID=periodID,
-                createdDate=datetime.utcnow(),
+            # IMPORTANT
+            line_objs.extend(pair_lines)
+
+        # ============================================
+        # Validate Whole Journal
+        # ============================================
+        total_debit = sum(float(x.debitAmount) for x in line_objs)
+        total_credit = sum(float(x.creditAmount) for x in line_objs)
+
+        print("==============================")
+        print("Total Debit :", total_debit)
+        print("Total Credit:", total_credit)
+        print("==============================")
+
+        if round(total_debit, 2) != round(total_credit, 2):
+            raise Exception(
+                f"Salary journal not balanced.\n"
+                f"Debit : {total_debit}\n"
+                f"Credit: {total_credit}"
             )
 
-            await self.repository.create_journal(
-                header_obj,
-                line_objs,
-            )
+        if not line_objs:
+            raise Exception("No journal lines generated.")
+
+        # ============================================
+        # Save Journal
+        # ============================================
+        await self.repository.create_journal(
+            header_obj,
+            line_objs,
+        )
+
 
     async def post_customer_receipt_journal(self, receipt, request):
 

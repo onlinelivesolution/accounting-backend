@@ -56,10 +56,20 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
             mappings = result.scalars().all()
 
             salary_map = {m.payrollItemID: m.amount for m in mappings}
-            basic = salary_map.get(1, 0)
-            house_rent = salary_map.get(2, 0)
-            medical = salary_map.get(3, 0)
-            conveyance = salary_map.get(4, 0)
+            basic = Decimal(salary_map.get(1, 0))
+            house_rent = Decimal(salary_map.get(2, 0))
+            medical = Decimal(salary_map.get(3, 0))
+            conveyance = Decimal(salary_map.get(4, 0))
+
+            # ==========================================
+            # Provident Fund Calculation
+            # ==========================================
+            pf_amount = (basic * Decimal("0.10")).quantize(Decimal("0.01"))
+
+            # Employer Contribution = 50% of PF
+            employer_contribution = (
+                pf_amount * Decimal("0.50")
+            ).quantize(Decimal("0.01"))
 
             # 2. Overtime
             result = await self.db.execute(
@@ -74,11 +84,11 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
 
             # 3. Gross Earnings
             gross = (
-                Decimal(basic or 0) 
-                + Decimal(house_rent or 0) 
-                + Decimal(medical or 0) 
-                + Decimal(conveyance or 0) 
-                + Decimal(overtime or 0) 
+                basic
+                + house_rent
+                + medical
+                + conveyance
+                + Decimal(overtime or 0)
                 + Decimal(row.otherAllowance or 0)
             )
 
@@ -141,12 +151,13 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
             tax_amount = Decimal(tax_amount)
 
             total_deduction = (
-                Decimal(tax_amount or 0) 
-                + Decimal(loan_deduction or 0) 
-                + Decimal(advance_salary_amount or 0) 
-                + Decimal(adjust_Unpaid_Leave_Amount or 0) 
-                + Decimal(row.houseRentDeduction or 0) 
-                + Decimal(row.excessMobileBill or 0) 
+                Decimal(tax_amount or 0)
+                + Decimal(loan_deduction or 0)
+                + Decimal(advance_salary_amount or 0)
+                + Decimal(adjust_Unpaid_Leave_Amount or 0)
+                + Decimal(row.houseRentDeduction or 0)
+                + Decimal(row.excessMobileBill or 0)
+                + (pf_amount if row.pfDeduction else Decimal("0"))
                 + Decimal(row.otherDeduction or 0)
             )
             net_earning = gross - total_deduction
@@ -165,6 +176,8 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
                 overtime=float(round(overtime, 2)),
                 grossEarnings=float(round(gross, 2)),
                 taxAmount=float(round(tax_amount, 2)),
+                pfAmount=float(round(pf_amount, 2)),
+                employerContribution=float(round(employer_contribution, 2)),
                 loanAdjust=float(round(loan_deduction, 2)),
                 adjustUnpaidLeave=float(round(adjust_Unpaid_Leave_Amount, 2)),
                 adjustAdvanceSalary=float(round(advance_salary_amount, 2)),

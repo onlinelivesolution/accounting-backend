@@ -20,7 +20,7 @@ class SalaryDetailDTO(BaseModel):
     grossEarnings: Optional[float] = 0
     adjustUnpaidLeave: Optional[float] = 0
     taxAmount: Optional[float] = 0
-    pFAmount: Optional[float] = 0
+    pfAmount: Optional[float] = 0
     employerContribution: Optional[float] = 0
     supplementaryPF: Optional[float] = 0
     loanAdjust: Optional[float] = 0

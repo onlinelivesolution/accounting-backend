@@ -17,7 +17,7 @@ class SalaryDetailRead(BaseModel):
     grossEarnings: float
     adjustUnpaidLeave: float
     taxAmount: float
-    pFAmount: float
+    pfAmount: float
     employerContribution: float
     supplementaryPF: float
     loanAdjust: float

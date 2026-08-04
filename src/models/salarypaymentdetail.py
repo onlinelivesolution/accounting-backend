@@ -16,6 +16,7 @@ class SalaryPaymentDetail(Base):
     amount = Column(Numeric(18, 2), nullable=True)
     taxAmount = Column(Numeric(18, 2), nullable=True)
     pfAmount = Column(Numeric(18, 2), nullable=True)
+    employerContribution = Column(Numeric(18, 2), nullable=True)
     loanAdjust = Column(Numeric(18, 2), nullable=True)
     adjustAdvanceSalary = Column(Numeric(18, 2), nullable=True)
     adjustUnpaidLeave = Column(Numeric(18, 2), nullable=True)

@@ -25,6 +25,11 @@ class JournalAmountResolver:
             return sum(
                 Decimal(str(d.pfAmount or 0)) for d in payment.salaryPaymentDetails
             )
+            
+        elif amount_source == "employercontribution":
+            return sum(
+                Decimal(str(d.employerContribution or 0)) for d in payment.salaryPaymentDetails
+            )
 
         elif amount_source == "loanadjust":
             return sum(
