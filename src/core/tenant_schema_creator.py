@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.engine import URL
 from src.services.database import Base
+import src.models
 
 # Import models here
 from src.models.company import Company

@@ -9,3 +9,9 @@ class GenerateSalaryResponseDTO(BaseModel):
     message: str
     
     model_config = ConfigDict(from_attributes=True)
+    
+class GenerateSalarySaveResponseDTO(BaseModel):
+    salaryID: int
+    message: str
+
+    model_config = ConfigDict(from_attributes=True)

@@ -197,12 +197,14 @@ def get_bank_account_service(
         bank_repo=bank_repo, detailitem_service=detailitem_service, db=db
     )
 
+
 from src.depends.repository_depends import get_account_report_repository
 from src.repositories.interfaces.iaccountreport__repository import (
     IAccountReportRepository,
 )
 from src.services.interfaces.iaccountreport__service import IAccountReportService
 from src.services.accountreport__service import AccountReportService
+
 
 def get_account_report_service(
     repository: IAccountReportRepository = Depends(get_account_report_repository),
@@ -247,20 +249,6 @@ def get_payscalemapping_service(
     repository: IPayScaleMappingRepository = Depends(get_payscalemappings_repository),
 ) -> IPayScaleMappingService:
     return PayScaleMappingService(repository)
-
-
-from src.depends.repository_depends import get_generatesalary_repository
-from src.repositories.interfaces.igeneratesalary_repository import (
-    IGenerateSalaryRepository,
-)
-from src.services.interfaces.igeneratesalary_service import IGenerateSalaryService
-from src.services.generatesalary_service import GenerateSalaryService
-
-
-def get_generatesalary_service(
-    repository: IGenerateSalaryRepository = Depends(get_generatesalary_repository),
-) -> IGenerateSalaryService:
-    return GenerateSalaryService(repository)
 
 
 from src.depends.repository_depends import get_salarydetail_repository
@@ -364,6 +352,21 @@ def get_sales_invoice_service(
     )
 
 
+from src.depends.repository_depends import get_generatesalary_repository
+from src.repositories.interfaces.igeneratesalary_repository import (
+    IGenerateSalaryRepository,
+)
+from src.services.interfaces.igeneratesalary_service import IGenerateSalaryService
+from src.services.generatesalary_service import GenerateSalaryService
+
+
+def get_generatesalary_service(
+    repository: IGenerateSalaryRepository = Depends(get_generatesalary_repository),
+    journal_service: ICommonJournalService = Depends(get_common_journal_service),
+) -> IGenerateSalaryService:
+    return GenerateSalaryService(repository, journal_service)
+
+
 from src.depends.repository_depends import get_salarypayment_repository
 from src.repositories.interfaces.isalarypayment_repository import (
     ISalaryPaymentRepository,
@@ -377,6 +380,19 @@ def get_salarypayment_service(
     journal_service: ICommonJournalService = Depends(get_common_journal_service),
 ) -> ISalaryPaymentService:
     return SalaryPaymentService(repository, journal_service)
+
+from src.depends.repository_depends import get_academicyear_repository
+from src.repositories.interfaces.iacademicyear_repository import (
+    IAcademicYearRepository,
+)
+from src.services.interfaces.iacademicyear_service import IAcademicYearService
+from src.services.academicyear_service import AcademicYearService
+
+
+def get_academicyear_service(
+    repository: IAcademicYearRepository = Depends(get_academicyear_repository),
+) -> IAcademicYearService:
+    return AcademicYearService(repository)
 
 
 from src.depends.repository_depends import get_bank_transaction_repository

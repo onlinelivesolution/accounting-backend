@@ -21,6 +21,10 @@ class ISalaryPaymentRepository(ABC):
         pass
     
     @abstractmethod
+    async def create_generate_salary(self, salary_payment: Salary) -> Salary:
+        pass
+    
+    @abstractmethod
     async def create_salary_payment(self, salary_payment: SalaryPayment) -> SalaryPayment:
         pass
     

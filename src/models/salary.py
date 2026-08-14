@@ -6,6 +6,7 @@ class Salary(Base):
     __tablename__ = "Salary"
     
     salaryID            = Column(Integer, primary_key=True, index=True) 
+    salaryNo     = Column(String(30), nullable=False)
     fiscalYear          = Column(String(4), nullable=True)   
     month               = Column(Integer, nullable=True)
     workingDay          = Column(Numeric(18, 2), nullable=True)

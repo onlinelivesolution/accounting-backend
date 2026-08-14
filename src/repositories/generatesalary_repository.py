@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from common.generic.generic_repository import GenericRepository
-from src.repositories.interfaces.igeneratesalary_repository import IGenerateSalaryRepository
+from src.repositories.interfaces.igeneratesalary_repository import (
+    IGenerateSalaryRepository,
+)
 from src.dto.generatesalaryrowdto import GenerateSalaryRowDTO
 from src.dto.generatesalaryresponsedto import GenerateSalaryResponseDTO
 from src.dto.salarydetaildto import SalaryDetailDTO
@@ -19,6 +21,8 @@ from src.models.salarydetail import SalaryDetail
 from src.models.employeeinvestment import EmployeeInvestment
 from src.dto.payscalerowdto import PayScaleRowDTO
 from sqlalchemy.orm import joinedload
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from src.models.payscale import PayScale
 from src.models.payscalemapping import PayScaleMapping
 from src.models.employeehistory import EmployeeHistory
@@ -42,16 +46,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepository):
     def __init__(self, db: AsyncSession):
         super().__init__(PayScale, db)
-        
-    async def generate_all_active_employee_salary(self, rows: List[GenerateSalaryRowDTO]) -> GenerateSalaryResponseDTO:
-       
+
+    async def generate_all_active_employee_salary(
+        self, rows: List[GenerateSalaryRowDTO]
+    ) -> GenerateSalaryResponseDTO:
+
         salary_details = []
         sl = 1
 
         for row in rows:
             # 1. Get PayScaleMapping
             result = await self.db.execute(
-                select(PayScaleMapping).join(PayScale).where(PayScale.employeeID == row.employeeID)
+                select(PayScaleMapping)
+                .join(PayScale)
+                .where(PayScale.employeeID == row.employeeID)
             )
             mappings = result.scalars().all()
 
@@ -67,17 +75,16 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
             pf_amount = (basic * Decimal("0.10")).quantize(Decimal("0.01"))
 
             # Employer Contribution = 50% of PF
-            employer_contribution = (
-                pf_amount * Decimal("0.50")
-            ).quantize(Decimal("0.01"))
+            employer_contribution = (pf_amount * Decimal("0.50")).quantize(
+                Decimal("0.01")
+            )
 
             # 2. Overtime
             result = await self.db.execute(
                 select(func.coalesce(func.sum(OvertimeDetail.totalAmount), 0))
                 .join(Overtime, Overtime.overtimeID == OvertimeDetail.overtimeID)
                 .where(
-                    Overtime.status == 2,
-                    OvertimeDetail.employeeID == row.employeeID
+                    Overtime.status == 2, OvertimeDetail.employeeID == row.employeeID
                 )
             )
             overtime = result.scalar_one()
@@ -97,12 +104,18 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
             tax_def = result.scalars().first()
             tax_amount = 0
             if tax_def:
-                result = await self.db.execute(select(TaxBand).where(TaxBand.taxDefinitionID == tax_def.taxDefinitionID))
+                result = await self.db.execute(
+                    select(TaxBand).where(
+                        TaxBand.taxDefinitionID == tax_def.taxDefinitionID
+                    )
+                )
                 tax_bands = result.scalars().all()
                 yearly_taxable = gross * 12 - (tax_def.taxFreeAmount or 0)
                 for band in tax_bands:
                     if yearly_taxable > band.startRange:
-                        taxable_in_band = min(yearly_taxable, band.endRange) - band.startRange
+                        taxable_in_band = (
+                            min(yearly_taxable, band.endRange) - band.startRange
+                        )
                         tax_amount += taxable_in_band * (band.percentage / 100)
                 tax_amount = tax_amount / 12  # Monthly
 
@@ -112,11 +125,13 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
                 result = await self.db.execute(
                     select(EmployeeLoan).where(
                         EmployeeLoan.employeeID == row.employeeID,
-                        EmployeeLoan.status == 3
+                        EmployeeLoan.status == 3,
                     )
                 )
                 employee_loan = result.scalars().first()
-                loan_deduction = employee_loan.installmentAmount if employee_loan else Decimal(0)
+                loan_deduction = (
+                    employee_loan.installmentAmount if employee_loan else Decimal(0)
+                )
 
             # 6. Advance Salary
             advance_salary_amount = Decimal(0)
@@ -124,11 +139,13 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
                 result = await self.db.execute(
                     select(AdvanceSalary).where(
                         AdvanceSalary.employeeID == row.employeeID,
-                        AdvanceSalary.status == 3
+                        AdvanceSalary.status == 3,
                     )
                 )
                 advance_salary = result.scalars().first()
-                advance_salary_amount = advance_salary.amount if advance_salary else Decimal(0)
+                advance_salary_amount = (
+                    advance_salary.amount if advance_salary else Decimal(0)
+                )
 
             # 7. Unpaid Leave
             adjust_Unpaid_Leave_Amount = Decimal(0)
@@ -140,7 +157,7 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
                     .where(
                         Leave.status == 2,
                         LeaveDetail.isUnPaid == True,
-                        LeaveDetail.employeeID == row.employeeID
+                        LeaveDetail.employeeID == row.employeeID,
                     )
                 )
                 unpaidLeaveDays = result.scalar_one()
@@ -148,10 +165,10 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
                 adjust_Unpaid_Leave_Amount = (gross / Decimal(22)) * unpaidLeaveDays
 
             # 8. Final Deduction and Salary Append (👈 OUTSIDE all ifs)
-            tax_amount = Decimal(tax_amount)
+            tax_amount = Decimal(tax_amount or 0)
 
             total_deduction = (
-                Decimal(tax_amount or 0)
+                tax_amount
                 + Decimal(loan_deduction or 0)
                 + Decimal(advance_salary_amount or 0)
                 + Decimal(adjust_Unpaid_Leave_Amount or 0)
@@ -160,40 +177,53 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
                 + (pf_amount if row.pfDeduction else Decimal("0"))
                 + Decimal(row.otherDeduction or 0)
             )
-            net_earning = gross - total_deduction
 
-            salary_details.append(SalaryDetailDTO(
-                sl=sl,
-                employeeID=row.employeeID,
-                employeeCode=row.employeeCode,
-                employeeName=row.employeeName,
-                payscaleID=row.payscaleID,
-                payscaleName=row.payscaleName,
-                basicSalary=float(round(basic, 2)),
-                houseRentAllowance=float(round(house_rent, 2)),
-                medicalAllowance=float(round(medical, 2)),
-                conveyance=float(round(conveyance, 2)),
-                overtime=float(round(overtime, 2)),
-                grossEarnings=float(round(gross, 2)),
-                taxAmount=float(round(tax_amount, 2)),
-                pfAmount=float(round(pf_amount, 2)),
-                employerContribution=float(round(employer_contribution, 2)),
-                loanAdjust=float(round(loan_deduction, 2)),
-                adjustUnpaidLeave=float(round(adjust_Unpaid_Leave_Amount, 2)),
-                adjustAdvanceSalary=float(round(advance_salary_amount, 2)),
-                totalDeduction=float(round(total_deduction, 2)),
-                netEarnings=float(round(net_earning, 2)),
-            ))
+            gross = gross.quantize(Decimal("0.01"))
+            total_deduction = total_deduction.quantize(Decimal("0.01"))
+            net_earning = (gross - total_deduction).quantize(Decimal("0.01"))
+
+            salary_details.append(
+                SalaryDetailDTO(
+                    sl=sl,
+                    employeeID=row.employeeID,
+                    employeeCode=row.employeeCode,
+                    employeeName=row.employeeName,
+                    payscaleID=row.payscaleID,
+                    payscaleName=row.payscaleName,
+                    basicSalary=float(basic.quantize(Decimal("0.01"))),
+                    houseRentAllowance=float(house_rent.quantize(Decimal("0.01"))),
+                    medicalAllowance=float(medical.quantize(Decimal("0.01"))),
+                    conveyance=float(conveyance.quantize(Decimal("0.01"))),
+                    overtime=float(Decimal(overtime or 0).quantize(Decimal("0.01"))),
+                    grossEarnings=float(gross),
+                    taxAmount=float(tax_amount.quantize(Decimal("0.01"))),
+                    pfAmount=float(pf_amount.quantize(Decimal("0.01"))),
+                    employerContribution=float(
+                        employer_contribution.quantize(Decimal("0.01"))
+                    ),
+                    loanAdjust=float(loan_deduction.quantize(Decimal("0.01"))),
+                    adjustUnpaidLeave=float(
+                        adjust_Unpaid_Leave_Amount.quantize(Decimal("0.01"))
+                    ),
+                    adjustAdvanceSalary=float(
+                        advance_salary_amount.quantize(Decimal("0.01"))
+                    ),
+                    totalDeduction=float(total_deduction),
+                    netEarnings=float(net_earning),
+                )
+            )
 
             sl += 1
 
-        return GenerateSalaryResponseDTO(salaryDetails=salary_details, message="Salary generated successfully")
-    
+        return GenerateSalaryResponseDTO(
+            salaryDetails=salary_details, message="Salary generated successfully"
+        )
+
     async def get_last_salary(self) -> Optional[Salary]:
         stmt = select(Salary).order_by(desc(Salary.salaryID)).limit(1)
         result = await self.db.execute(stmt)
         return result.scalars().first()
-    
+
     async def generate_salary_number(self) -> str:
         last_salary = await self.get_last_salary()
         if not last_salary:
@@ -204,33 +234,70 @@ class GenerateSalaryRepository(GenericRepository[PayScale], IGenerateSalaryRepos
         new_number = last_number + 1
         return f"SAL{new_number:07d}"
     
-    async def insert_all_employee_salary_detail(self, salary: Salary, details: List[SalaryDetail]) -> Dict[str, str]:
-            
-        self.db.add(salary)
-        await self.db.flush()
+    async def get_salary_with_details(
+        self,
+        salary_id: int,
+    ) -> Salary | None:
 
-        for detail in details:
-            detail.salaryID = salary.salaryID
-            self.db.add(detail)
+        result = await self.db.execute(
+            select(Salary)
+            .options(
+                selectinload(Salary.details)
+            )
+            .where(
+                Salary.salaryID == salary_id
+            )
+        )
 
-        await self.db.commit()
-        return {"message": "Salary and SalaryDetail inserted successfully"}
-    
+        return result.scalars().first()
+
+    async def insert_all_employee_salary_detail(
+        self,
+        salary: Salary,
+        details: list[SalaryDetail],
+    ):
+        try:
+            # Add Salary
+            self.db.add(salary)
+
+            # Flush so SQL Server generates salaryID
+            await self.db.flush()
+
+            # Add Salary Details
+            for detail in details:
+                detail.salaryID = salary.salaryID
+                self.db.add(detail)
+
+            # Flush details
+            await self.db.flush()
+
+            # Commit everything
+            await self.db.commit()
+
+            # Refresh Salary
+            await self.db.refresh(salary)
+
+            return salary
+
+        except Exception:
+            await self.db.rollback()
+            raise
+
     async def get_all_companies(self) -> List[CompanyDTO]:
         result = await self.db.execute(select(Company))
         companies = result.scalars().all()
         return [CompanyDTO.model_validate(c) for c in companies]
-    
+
     async def get_all_departments(self) -> List[ActivityCenterDTO]:
         result = await self.db.execute(select(ActivityCenter))
         departments = result.scalars().all()
         return [ActivityCenterDTO.model_validate(d) for d in departments]
-    
+
     async def get_all_sections(self) -> List[ResponsibilityCenterDTO]:
         result = await self.db.execute(select(ResponsibilityCenter))
         sections = result.scalars().all()
         return [ResponsibilityCenterDTO.model_validate(s) for s in sections]
-    
+
     async def get_all_fiscalyear(self) -> List[FiscalYearDTO]:
         stmt = select(FiscalYear.finYearID, FiscalYear.finYear)
         result = await self.db.execute(stmt)
