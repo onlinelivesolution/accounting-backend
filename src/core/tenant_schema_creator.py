@@ -23,7 +23,8 @@ async def create_tenant_schema(database_name: str):
         drivername="mssql+aioodbc",
         username="sa",
         password="abcd123!",
-        host="DESKTOP-BMKMV1T\SQLEXPRESS",
+        host="DESKTOP-GCAJSDB",
+        port=1433,  # add this
         database=database_name,
         query={
             "driver": "ODBC Driver 18 for SQL Server",

@@ -1,5 +1,5 @@
 from typing import List
-
+from sqlalchemy import select, func
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,8 +17,7 @@ class StudentRepository(GenericRepository[Student], IStudentRepository):
     async def get_all(self) -> List[Student]:
 
         result = await self.db.execute(
-            select(Student)
-            .order_by(Student.studentID.desc())
+            select(Student).order_by(Student.studentID.desc())
         )
 
         return list(result.scalars().all())
@@ -29,9 +28,7 @@ class StudentRepository(GenericRepository[Student], IStudentRepository):
     ) -> Student | None:
 
         result = await self.db.execute(
-            select(Student).where(
-                Student.studentID == student_id
-            )
+            select(Student).where(Student.studentID == student_id)
         )
 
         return result.scalar_one_or_none()
@@ -42,9 +39,7 @@ class StudentRepository(GenericRepository[Student], IStudentRepository):
     ) -> Student | None:
 
         result = await self.db.execute(
-            select(Student).where(
-                Student.studentCode == student_code
-            )
+            select(Student).where(Student.studentCode == student_code)
         )
 
         return result.scalar_one_or_none()
@@ -55,9 +50,7 @@ class StudentRepository(GenericRepository[Student], IStudentRepository):
     ) -> Student | None:
 
         result = await self.db.execute(
-            select(Student).where(
-                Student.admissionNo == admission_no
-            )
+            select(Student).where(Student.admissionNo == admission_no)
         )
 
         return result.scalar_one_or_none()
@@ -69,9 +62,8 @@ class StudentRepository(GenericRepository[Student], IStudentRepository):
 
         self.db.add(student)
 
-        await self.db.commit()
-
-        await self.db.refresh(student)
+        # Send INSERT to SQL Server so that studentID is generated
+        await self.db.flush()
 
         return student
 
@@ -85,3 +77,14 @@ class StudentRepository(GenericRepository[Student], IStudentRepository):
         await self.db.refresh(student)
 
         return student
+
+    async def get_next_student_id(self) -> int:
+
+        result = await self.db.execute(select(func.max(Student.studentID)))
+
+        last_id = result.scalar_one_or_none()
+
+        if last_id is None:
+            return 1
+
+        return last_id + 1

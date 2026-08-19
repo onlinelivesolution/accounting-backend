@@ -1,6 +1,6 @@
 import pyodbc
 
-SERVER = "DESKTOP-BMKMV1T\SQLEXPRESS"
+SERVER = "DESKTOP-GCAJSDB"
 USER = "sa"
 PASSWORD = "abcd123!"
 DRIVER = "ODBC Driver 18 for SQL Server"

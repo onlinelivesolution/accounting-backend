@@ -10,7 +10,7 @@ _sessions = {}
 
 def get_engine(database_name: str):
     DATABASE_URL = (
-        f"mssql+aioodbc://sa:abcd123%21@DESKTOP-BMKMV1T\SQLEXPRESS/"
+        f"mssql+aioodbc://sa:abcd123%21@DESKTOP-GCAJSDB/"
         f"{database_name}?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
     )
 

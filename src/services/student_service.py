@@ -32,19 +32,14 @@ class StudentService(IStudentService):
 
         students = await self.repository.get_all()
 
-        return [
-            StudentDTO.model_validate(student)
-            for student in students
-        ]
+        return [StudentDTO.model_validate(student) for student in students]
 
     async def get_by_id(
         self,
         student_id: int,
     ) -> StudentDTO:
 
-        student = await self.repository.get_by_id(
-            student_id
-        )
+        student = await self.repository.get_by_id(student_id)
 
         if student is None:
             raise HTTPException(
@@ -54,26 +49,15 @@ class StudentService(IStudentService):
 
         return StudentDTO.model_validate(student)
 
+
     async def create(
         self,
         data: StudentCreateDTO,
     ) -> StudentDTO:
 
-        # Check duplicate student code
-        existing = await self.repository.get_by_student_code(
-            data.studentCode
-        )
-
-        if existing is not None:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=(
-                    f"Student code "
-                    f"{data.studentCode} already exists."
-                ),
-            )
-
+        # ---------------------------------------------------------
         # Check duplicate admission number
+        # ---------------------------------------------------------
         existing = await self.repository.get_by_admission_no(
             data.admissionNo
         )
@@ -87,8 +71,19 @@ class StudentService(IStudentService):
                 ),
             )
 
+        # ---------------------------------------------------------
+        # Temporary student code
+        #
+        # studentCode is NOT NULL in SQL Server, so we need to
+        # provide a temporary unique value until SQL Server
+        # generates studentID.
+        # ---------------------------------------------------------
+        temporary_code = (
+            f"TEMP-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+        )
+
         student = Student(
-            studentCode=data.studentCode,
+            studentCode=temporary_code,
             admissionNo=data.admissionNo,
             firstName=data.firstName,
             middleName=data.middleName,
@@ -107,19 +102,44 @@ class StudentService(IStudentService):
             createdDate=datetime.now(),
         )
 
+        # ---------------------------------------------------------
+        # Insert and FLUSH
+        #
+        # SQL Server now generates studentID.
+        # ---------------------------------------------------------
         created = await self.repository.create(student)
 
-        return StudentDTO.model_validate(created)
+        # ---------------------------------------------------------
+        # Generate the REAL student code
+        #
+        # Example:
+        # studentID = 51
+        # year = 2026
+        #
+        # STU-2026-000051
+        # ---------------------------------------------------------
+        current_year = datetime.now().year
 
+        created.studentCode = (
+            f"STU-{current_year}-{created.studentID:06d}"
+        )
+
+        # ---------------------------------------------------------
+        # Commit
+        # ---------------------------------------------------------
+        await self.repository.db.commit()
+
+        await self.repository.db.refresh(created)
+
+        return StudentDTO.model_validate(created)
+    
     async def update(
         self,
         student_id: int,
         data: StudentUpdateDTO,
     ) -> StudentDTO:
 
-        student = await self.repository.get_by_id(
-            student_id
-        )
+        student = await self.repository.get_by_id(student_id)
 
         if student is None:
             raise HTTPException(
@@ -129,44 +149,24 @@ class StudentService(IStudentService):
 
         if data.studentCode is not None:
 
-            existing = (
-                await self.repository.get_by_student_code(
-                    data.studentCode
-                )
-            )
+            existing = await self.repository.get_by_student_code(data.studentCode)
 
-            if (
-                existing is not None
-                and existing.studentID != student_id
-            ):
+            if existing is not None and existing.studentID != student_id:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail=(
-                        f"Student code "
-                        f"{data.studentCode} already exists."
-                    ),
+                    detail=(f"Student code " f"{data.studentCode} already exists."),
                 )
 
             student.studentCode = data.studentCode
 
         if data.admissionNo is not None:
 
-            existing = (
-                await self.repository.get_by_admission_no(
-                    data.admissionNo
-                )
-            )
+            existing = await self.repository.get_by_admission_no(data.admissionNo)
 
-            if (
-                existing is not None
-                and existing.studentID != student_id
-            ):
+            if existing is not None and existing.studentID != student_id:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail=(
-                        f"Admission number "
-                        f"{data.admissionNo} already exists."
-                    ),
+                    detail=(f"Admission number " f"{data.admissionNo} already exists."),
                 )
 
             student.admissionNo = data.admissionNo
@@ -224,9 +224,7 @@ class StudentService(IStudentService):
         student_id: int,
     ) -> StudentDTO:
 
-        student = await self.repository.get_by_id(
-            student_id
-        )
+        student = await self.repository.get_by_id(student_id)
 
         if student is None:
             raise HTTPException(
@@ -246,3 +244,20 @@ class StudentService(IStudentService):
         updated = await self.repository.update(student)
 
         return StudentDTO.model_validate(updated)
+    
+    async def get_next_student_code(self) -> str:
+
+        # Get the next student ID
+        next_student_id = (
+            await self.repository.get_next_student_id()
+        )
+
+        # Current year
+        current_year = datetime.now().year
+
+        # Generate preview code
+        student_code = (
+            f"STU-{current_year}-{next_student_id:06d}"
+        )
+
+        return student_code

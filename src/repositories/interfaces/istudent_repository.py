@@ -44,3 +44,9 @@ class IStudentRepository(ABC):
         student: Student,
     ) -> Student:
         pass
+    
+    @abstractmethod
+    async def get_next_student_id(
+        self,
+    ) -> int:
+        pass

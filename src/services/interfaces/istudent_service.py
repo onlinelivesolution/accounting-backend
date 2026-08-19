@@ -42,3 +42,9 @@ class IStudentService(ABC):
         student_id: int,
     ) -> StudentDTO:
         pass
+    
+    @abstractmethod
+    async def get_next_student_code(
+        self,
+    ) -> str:
+        pass
