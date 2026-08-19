@@ -1,18 +1,21 @@
 from datetime import datetime
 from typing import List
-
+from datetime import datetime
 from fastapi import HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException, status
 
 from src.schemas.academicyear_schema import (
     AcademicYearCreateDTO,
     AcademicYearDTO,
     AcademicYearUpdateDTO,
 )
+
 from src.models.academicyear import AcademicYear
-from src.repositories.academicyear_repository import (
-    AcademicYearRepository,
+
+from src.repositories.interfaces.iacademicyear_repository import (
+    IAcademicYearRepository,
 )
+
 from src.services.interfaces.iacademicyear_service import (
     IAcademicYearService,
 )
@@ -20,11 +23,11 @@ from src.services.interfaces.iacademicyear_service import (
 
 class AcademicYearService(IAcademicYearService):
 
-    def __init__(self, db: AsyncSession):
-
-        self.db = db
-
-        self.repository = AcademicYearRepository(db)
+    def __init__(
+        self,
+        repository: IAcademicYearRepository,
+    ):
+        self.repository = repository
 
     async def get_all(self) -> List[AcademicYearDTO]:
 
@@ -46,6 +49,12 @@ class AcademicYearService(IAcademicYearService):
 
         return AcademicYearDTO.model_validate(academic_year)
 
+    async def get_by_year(
+        self,
+        year: int,
+    ):
+        return await self.repository.get_by_year(year)
+
     async def get_current(self) -> AcademicYearDTO:
 
         academic_year = await self.repository.get_current()
@@ -58,17 +67,20 @@ class AcademicYearService(IAcademicYearService):
 
         return AcademicYearDTO.model_validate(academic_year)
 
-    async def create(self, data: AcademicYearCreateDTO) -> AcademicYearDTO:
+    async def create(
+        self,
+        data: AcademicYearCreateDTO,
+    ) -> AcademicYearDTO:
 
-        # Validate date range
         if data.startDate >= data.endDate:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Start date must be before end date.",
             )
 
-        # Check duplicate year
-        existing = await self.repository.get_by_year(data.year)
+        existing = await self.repository.get_by_year(
+            data.year
+        )
 
         if existing is not None:
             raise HTTPException(
@@ -76,8 +88,6 @@ class AcademicYearService(IAcademicYearService):
                 detail=f"Academic year {data.year} already exists.",
             )
 
-        # If this is the first academic year,
-        # make it current automatically.
         current = await self.repository.get_current()
 
         is_current = data.isCurrent
@@ -85,10 +95,7 @@ class AcademicYearService(IAcademicYearService):
         if current is None:
             is_current = True
 
-        # If user wants this year current,
-        # remove current flag from existing year.
         if is_current and current is not None:
-
             current.isCurrent = False
             current.updatedDate = datetime.now()
 
@@ -102,7 +109,9 @@ class AcademicYearService(IAcademicYearService):
             createdDate=datetime.now(),
         )
 
-        created = await self.repository.create(academic_year)
+        created = await self.repository.create(
+            academic_year
+        )
 
         return AcademicYearDTO.model_validate(created)
 
@@ -205,19 +214,44 @@ class AcademicYearService(IAcademicYearService):
 
         return AcademicYearDTO.model_validate(updated)
 
-    async def delete(self, academic_year_id: int) -> bool:
 
-        academic_year = await self.repository.get_by_id(academic_year_id)
+
+    async def deactivate(
+        self,
+        academic_year_id: int,
+    ) -> AcademicYearDTO:
+
+        academic_year = await self.repository.get_by_id(
+            academic_year_id
+        )
 
         if academic_year is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Academic year not found."
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Academic year not found.",
             )
 
         if academic_year.isCurrent:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=("The current academic year cannot be deleted."),
+                detail=(
+                    "The current academic year cannot be "
+                    "deactivated."
+                ),
             )
 
-        return await self.repository.delete(academic_year_id)
+        if academic_year.status == "Inactive":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Academic year is already inactive.",
+            )
+
+        # SOFT DELETE
+        academic_year.status = "Inactive"
+        academic_year.updatedDate = datetime.now()
+
+        updated = await self.repository.update(
+            academic_year
+        )
+
+        return AcademicYearDTO.model_validate(updated)

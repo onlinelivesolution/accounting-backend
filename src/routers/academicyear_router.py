@@ -90,15 +90,16 @@ async def set_current_academic_year(
 ):
     return await service.set_current(academic_year_id)
 
+# @router.put(
+#     "/{academic_year_id}/deactivate",
+#     response_model=AcademicYearDTO,
+# )
+# async def deactivate_academic_year(
+#     academic_year_id: int,
+#     service: IAcademicYearService = Depends(
+#         get_academicyear_service
+#     ),
+# ):
+#     return await service.deactivate(academic_year_id)
 
-@router.delete(
-    "/{academic_year_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-async def delete_academic_year(
-    academic_year_id: int,
-    service: IAcademicYearService = Depends(get_academicyear_service),
-):
-    await service.delete(academic_year_id)
 
-    return None

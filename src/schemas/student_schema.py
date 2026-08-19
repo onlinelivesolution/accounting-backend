@@ -1,8 +1,10 @@
-from datetime import date
+from datetime import date, datetime
+
 from pydantic import BaseModel, ConfigDict
 
 
-class StudentBaseDTO(BaseModel):
+class StudentCreateDTO(BaseModel):
+
     studentCode: str
     admissionNo: str
 
@@ -11,6 +13,7 @@ class StudentBaseDTO(BaseModel):
     lastName: str | None = None
 
     dateOfBirth: date | None = None
+
     gender: str | None = None
     bloodGroup: str | None = None
 
@@ -25,19 +28,18 @@ class StudentBaseDTO(BaseModel):
 
     admissionDate: date | None = None
 
-    status: str = "Active"
-
-
-class StudentCreateDTO(StudentBaseDTO):
-    pass
-
 
 class StudentUpdateDTO(BaseModel):
+
+    studentCode: str | None = None
+    admissionNo: str | None = None
+
     firstName: str | None = None
     middleName: str | None = None
     lastName: str | None = None
 
     dateOfBirth: date | None = None
+
     gender: str | None = None
     bloodGroup: str | None = None
 
@@ -50,10 +52,43 @@ class StudentUpdateDTO(BaseModel):
     city: str | None = None
     postalCode: str | None = None
 
+    admissionDate: date | None = None
+
     status: str | None = None
 
 
-class StudentDTO(StudentBaseDTO):
+class StudentDTO(BaseModel):
+
     studentID: int
 
-    model_config = ConfigDict(from_attributes=True)
+    studentCode: str
+    admissionNo: str
+
+    firstName: str
+    middleName: str | None = None
+    lastName: str | None = None
+
+    dateOfBirth: date | None = None
+
+    gender: str | None = None
+    bloodGroup: str | None = None
+
+    photoPath: str | None = None
+
+    phone: str | None = None
+    email: str | None = None
+
+    address: str | None = None
+    city: str | None = None
+    postalCode: str | None = None
+
+    admissionDate: date | None = None
+
+    status: str
+
+    createdDate: datetime
+    updatedDate: datetime | None = None
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )

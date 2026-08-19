@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-
+from src.schemas.academicyear_schema import AcademicYearDTO
 from src.models.academicyear import AcademicYear
 
 
@@ -15,7 +15,7 @@ class IAcademicYearRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_year(self, year: int) -> Optional[AcademicYear]:
+    async def get_by_year(self, year: int) -> AcademicYear | None:
         pass
 
     @abstractmethod
@@ -30,6 +30,9 @@ class IAcademicYearRepository(ABC):
     async def update(self, academic_year: AcademicYear) -> AcademicYear:
         pass
 
-    @abstractmethod
-    async def delete(self, academic_year_id: int) -> bool:
-        pass
+    # @abstractmethod
+    # async def deactivate(
+    #     self,
+    #     academic_year_id: int,
+    # ) -> AcademicYearDTO:
+    #     pass

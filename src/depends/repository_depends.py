@@ -194,16 +194,16 @@ def get_sales_invoice_repository(db: AsyncSession = Depends(get_tenant_db)):
 
 
 from src.repositories.salarypayment_repository import SalaryPaymentRepository
-
-
 def get_salarypayment_repository(db: AsyncSession = Depends(get_tenant_db)):
     return SalaryPaymentRepository(db)
 
 from src.repositories.academicyear_repository import AcademicYearRepository
-
-
 def get_academicyear_repository(db: AsyncSession = Depends(get_tenant_db)):
     return AcademicYearRepository(db)
+
+from src.repositories.student_repository import StudentRepository
+def get_student_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return StudentRepository(db)
 
 
 from src.repositories.salesorder_repository import SalesOrderRepository

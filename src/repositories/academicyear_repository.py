@@ -2,17 +2,15 @@ from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from common.generic.generic_repository import GenericRepository
 from src.models.academicyear import AcademicYear
 from src.repositories.interfaces.iacademicyear_repository import (
     IAcademicYearRepository,
 )
 
-
-class AcademicYearRepository(IAcademicYearRepository):
-
+class AcademicYearRepository(GenericRepository[AcademicYear], IAcademicYearRepository):
     def __init__(self, db: AsyncSession):
-        self.db = db
+        super().__init__(AcademicYear, db)
 
     async def get_all(self) -> List[AcademicYear]:
 
@@ -30,18 +28,27 @@ class AcademicYearRepository(IAcademicYearRepository):
 
         return result.scalar_one_or_none()
 
-    async def get_by_year(self, year: int) -> Optional[AcademicYear]:
+    async def get_by_year(
+        self,
+        year: int,
+    ) -> Optional[AcademicYear]:
 
         result = await self.db.execute(
-            select(AcademicYear).where(AcademicYear.year == year)
+            select(AcademicYear).where(
+                AcademicYear.year == year
+            )
         )
 
         return result.scalar_one_or_none()
 
-    async def get_current(self) -> Optional[AcademicYear]:
+    async def get_current(
+        self,
+    ) -> AcademicYear | None:
 
         result = await self.db.execute(
-            select(AcademicYear).where(AcademicYear.isCurrent == True)
+            select(AcademicYear).where(
+                AcademicYear.isCurrent == True
+            )
         )
 
         return result.scalar_one_or_none()
@@ -64,15 +71,10 @@ class AcademicYearRepository(IAcademicYearRepository):
 
         return academic_year
 
-    async def delete(self, academic_year_id: int) -> bool:
+    # async def update(self, entity):
+    #     merged_entity = await self.db.merge(entity)
 
-        academic_year = await self.get_by_id(academic_year_id)
+    #     await self.db.commit()
+    #     await self.db.refresh(merged_entity)
 
-        if academic_year is None:
-            return False
-
-        await self.db.delete(academic_year)
-
-        await self.db.commit()
-
-        return True
+    #     return merged_entity

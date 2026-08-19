@@ -394,6 +394,19 @@ def get_academicyear_service(
 ) -> IAcademicYearService:
     return AcademicYearService(repository)
 
+from src.depends.repository_depends import get_student_repository
+from src.repositories.interfaces.istudent_repository import (
+    IStudentRepository,
+)
+from src.services.interfaces.istudent_service import IStudentService
+from src.services.student_service import StudentService
+
+
+def get_student_service(
+    repository: IStudentRepository = Depends(get_student_repository),
+) -> IStudentService:
+    return StudentService(repository)
+
 
 from src.depends.repository_depends import get_bank_transaction_repository
 from src.repositories.interfaces.ibanktransaction_repository import (

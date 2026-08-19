@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import List
-
+from src.schemas.academicyear_schema import AcademicYearDTO
+from src.models.academicyear import AcademicYear
 from src.schemas.academicyear_schema import (
     AcademicYearCreateDTO,
-    AcademicYearDTO,
     AcademicYearUpdateDTO,
 )
 
@@ -11,31 +10,51 @@ from src.schemas.academicyear_schema import (
 class IAcademicYearService(ABC):
 
     @abstractmethod
-    async def get_all(self) -> List[AcademicYearDTO]:
+    async def get_all(self):
         pass
 
     @abstractmethod
-    async def get_by_id(self, academic_year_id: int) -> AcademicYearDTO:
+    async def get_by_id(
+        self,
+        academic_year_id: int,
+    ):
         pass
 
     @abstractmethod
-    async def get_current(self) -> AcademicYearDTO:
+    async def get_by_year(
+        self,
+        year: int,
+    ) -> AcademicYear | None:
         pass
 
     @abstractmethod
-    async def create(self, data: AcademicYearCreateDTO) -> AcademicYearDTO:
+    async def get_current(self):
+        pass
+
+    @abstractmethod
+    async def create(
+        self, request: AcademicYearCreateDTO
+    ) -> AcademicYear:
         pass
 
     @abstractmethod
     async def update(
-        self, academic_year_id: int, data: AcademicYearUpdateDTO
-    ) -> AcademicYearDTO:
+        self,
+        academic_year_id: int,
+        data: AcademicYearUpdateDTO,
+    ):
         pass
 
     @abstractmethod
-    async def delete(self, academic_year_id: int) -> bool:
+    async def set_current(
+        self,
+        academic_year_id: int,
+    ):
         pass
 
-    @abstractmethod
-    async def set_current(self, academic_year_id: int) -> AcademicYearDTO:
-        pass
+    # @abstractmethod
+    # async def deactivate(
+    #     self,
+    #     academic_year_id: int,
+    # ) -> AcademicYearDTO:
+    #     pass
