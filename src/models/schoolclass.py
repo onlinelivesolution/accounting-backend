@@ -32,3 +32,8 @@ class SchoolClass(Base):
         lazy="selectin",
         cascade="all, delete-orphan",
     )
+    
+    enrollments = relationship(
+        "StudentEnrollment",
+        back_populates="schoolClass",
+    )

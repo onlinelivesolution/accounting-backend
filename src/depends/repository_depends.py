@@ -205,6 +205,10 @@ from src.repositories.student_repository import StudentRepository
 def get_student_repository(db: AsyncSession = Depends(get_tenant_db)):
     return StudentRepository(db)
 
+from src.repositories.studentenrollment_repository import StudentEnrollmentRepository
+def get_student_enrollment_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return StudentEnrollmentRepository(db)
+
 
 from src.repositories.salesorder_repository import SalesOrderRepository
 

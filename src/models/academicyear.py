@@ -34,5 +34,10 @@ class AcademicYear(Base):
         "Exam",
         back_populates="academicYear",
         lazy="selectin",
-        cascade="all, delete-orphan",
+        cascade="all, delete-orphan", 
+    )
+    
+    enrollments = relationship(
+        "StudentEnrollment",
+        back_populates="academicYear",
     )

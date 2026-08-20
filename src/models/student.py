@@ -1,5 +1,5 @@
 from datetime import date, datetime
-
+from sqlalchemy.orm import relationship
 from sqlalchemy import Date, DateTime, Integer, String
 from sqlalchemy.orm import (
     Mapped,
@@ -67,10 +67,10 @@ class Student(Base):
         cascade="all, delete-orphan",
     )
 
-    enrollments = orm_relationship(
+    enrollments = relationship(
         "StudentEnrollment",
         back_populates="student",
-        lazy="selectin",
+        cascade="all, delete-orphan",
     )
 
     promotions = orm_relationship(

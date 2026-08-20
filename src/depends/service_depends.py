@@ -407,6 +407,19 @@ def get_student_service(
 ) -> IStudentService:
     return StudentService(repository)
 
+from src.depends.repository_depends import get_student_enrollment_repository
+from src.repositories.interfaces.istudentenrollment_repository import (
+    IStudentEnrollmentRepository,
+)
+from src.services.interfaces.istudentenrollment_service import IStudentEnrollmentService
+from src.services.studentenrollment_service import StudentEnrollmentService
+
+
+def get_student_enrollment_service(
+    repository: IStudentEnrollmentRepository = Depends(get_student_enrollment_repository),
+) -> IStudentEnrollmentService:
+    return StudentEnrollmentService(repository)
+
 
 from src.depends.repository_depends import get_bank_transaction_repository
 from src.repositories.interfaces.ibanktransaction_repository import (

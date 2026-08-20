@@ -30,5 +30,6 @@ class Section(Base):
     schoolClass = relationship("SchoolClass", back_populates="sections")
 
     enrollments = relationship(
-        "StudentEnrollment", back_populates="section", lazy="selectin"
+        "StudentEnrollment",
+        back_populates="section",
     )
