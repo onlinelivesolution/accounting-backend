@@ -13,6 +13,7 @@ from src.schemas.student_schema import (
     StudentCreateDTO,
     StudentDTO,
     StudentUpdateDTO,
+    StudentDropdownDTO,
 )
 
 from src.services.interfaces.istudent_service import (
@@ -261,3 +262,35 @@ class StudentService(IStudentService):
         )
 
         return student_code
+    
+    async def get_dropdown_students(
+        self,
+    ) -> list[StudentDropdownDTO]:
+
+        students = await self.repository.get_dropdown_students()
+
+        result = []
+
+        for student in students:
+
+            full_name = " ".join(
+                filter(
+                    None,
+                    [
+                        student.firstName,
+                        student.middleName,
+                        student.lastName,
+                    ],
+                )
+            )
+
+            result.append(
+                StudentDropdownDTO(
+                    studentID=student.studentID,
+                    studentCode=student.studentCode,
+                    studentName=full_name,
+                    admissionNo=student.admissionNo,
+                )
+            )
+
+        return result

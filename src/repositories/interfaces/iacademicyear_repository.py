@@ -36,3 +36,9 @@ class IAcademicYearRepository(ABC):
     #     academic_year_id: int,
     # ) -> AcademicYearDTO:
     #     pass
+    
+    @abstractmethod
+    async def get_dropdown_academic_years(
+        self,
+    ) -> list[AcademicYear]:
+        pass

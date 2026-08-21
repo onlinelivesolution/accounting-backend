@@ -50,3 +50,9 @@ class IStudentRepository(ABC):
         self,
     ) -> int:
         pass
+    
+    @abstractmethod
+    async def get_dropdown_students(
+        self,
+    ) -> List[Student]:
+        pass

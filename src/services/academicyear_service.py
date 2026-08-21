@@ -8,6 +8,7 @@ from src.schemas.academicyear_schema import (
     AcademicYearCreateDTO,
     AcademicYearDTO,
     AcademicYearUpdateDTO,
+    AcademicYearDropdownDTO,
 )
 
 from src.models.academicyear import AcademicYear
@@ -255,3 +256,23 @@ class AcademicYearService(IAcademicYearService):
         )
 
         return AcademicYearDTO.model_validate(updated)
+    
+    async def get_dropdown_academic_years(
+        self,
+    ) -> list[AcademicYearDropdownDTO]:
+
+        academic_years = (
+            await self.repository
+            .get_dropdown_academic_years()
+        )
+
+        return [
+            AcademicYearDropdownDTO(
+                academicYearID=item.academicYearID,
+                year=item.year,
+                name=item.name,
+                isCurrent=item.isCurrent,
+                status=item.status,
+            )
+            for item in academic_years
+        ]

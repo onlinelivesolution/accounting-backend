@@ -78,3 +78,19 @@ class AcademicYearRepository(GenericRepository[AcademicYear], IAcademicYearRepos
     #     await self.db.refresh(merged_entity)
 
     #     return merged_entity
+    
+    async def get_dropdown_academic_years(
+        self,
+    ) -> list[AcademicYear]:
+
+        result = await self.db.execute(
+            select(AcademicYear)
+            .where(
+                AcademicYear.status == "Active"
+            )
+            .order_by(
+                AcademicYear.year.desc()
+            )
+        )
+
+        return list(result.scalars().all())

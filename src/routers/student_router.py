@@ -6,6 +6,7 @@ from src.schemas.student_schema import (
     StudentCreateDTO,
     StudentDTO,
     StudentUpdateDTO,
+    StudentDropdownDTO,
 )
 
 from src.services.interfaces.istudent_service import (
@@ -35,6 +36,17 @@ async def get_next_student_code(
     student_code = await service.get_next_student_code()
 
     return {"studentCode": student_code}
+
+@router.get(
+    "/dropdown",
+    response_model=List[StudentDropdownDTO],
+)
+async def get_student_dropdown(
+    service: IStudentService = Depends(
+        get_student_service
+    ),
+):
+    return await service.get_dropdown_students()
 
 
 @router.get(

@@ -27,3 +27,17 @@ class AcademicYearDTO(AcademicYearBaseDTO):
     academicYearID: int
 
     model_config = ConfigDict(from_attributes=True)
+
+from pydantic import BaseModel, ConfigDict
+
+
+class AcademicYearDropdownDTO(BaseModel):
+    academicYearID: int
+    year: int
+    name: str
+    isCurrent: bool
+    status: str
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )

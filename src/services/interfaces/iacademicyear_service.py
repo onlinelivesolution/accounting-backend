@@ -4,6 +4,7 @@ from src.models.academicyear import AcademicYear
 from src.schemas.academicyear_schema import (
     AcademicYearCreateDTO,
     AcademicYearUpdateDTO,
+    AcademicYearDropdownDTO,
 )
 
 
@@ -58,3 +59,9 @@ class IAcademicYearService(ABC):
     #     academic_year_id: int,
     # ) -> AcademicYearDTO:
     #     pass
+    
+    @abstractmethod
+    async def get_dropdown_academic_years(
+        self,
+    ) -> list[AcademicYearDropdownDTO]:
+        pass

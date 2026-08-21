@@ -92,3 +92,14 @@ class StudentDTO(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+
+class StudentDropdownDTO(BaseModel):
+    studentID: int
+    studentCode: str
+    studentName: str
+    admissionNo: str | None = None
+
+    model_config = ConfigDict(
+        from_attributes=True
+    )

@@ -5,6 +5,7 @@ from src.schemas.student_schema import (
     StudentCreateDTO,
     StudentDTO,
     StudentUpdateDTO,
+    StudentDropdownDTO,
 )
 
 
@@ -47,4 +48,10 @@ class IStudentService(ABC):
     async def get_next_student_code(
         self,
     ) -> str:
+        pass
+    
+    @abstractmethod
+    async def get_dropdown_students(
+        self,
+    ) -> List[StudentDropdownDTO]:
         pass

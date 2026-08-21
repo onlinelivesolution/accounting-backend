@@ -6,6 +6,7 @@ from src.schemas.academicyear_schema import (
     AcademicYearCreateDTO,
     AcademicYearDTO,
     AcademicYearUpdateDTO,
+    AcademicYearDropdownDTO,
 )
 
 from src.services.interfaces.iacademicyear_service import (
@@ -40,6 +41,15 @@ async def get_current_academic_year(
     service: IAcademicYearService = Depends(get_academicyear_service),
 ):
     return await service.get_current()
+
+@router.get(
+    "/dropdown",
+    response_model=List[AcademicYearDropdownDTO],
+)
+async def get_academic_year_dropdown(
+    service: IAcademicYearService = Depends(get_academicyear_service),
+):
+    return await service.get_dropdown_academic_years()
 
 
 @router.get(
@@ -90,6 +100,7 @@ async def set_current_academic_year(
 ):
     return await service.set_current(academic_year_id)
 
+
 # @router.put(
 #     "/{academic_year_id}/deactivate",
 #     response_model=AcademicYearDTO,
@@ -101,5 +112,6 @@ async def set_current_academic_year(
 #     ),
 # ):
 #     return await service.deactivate(academic_year_id)
+
 
 
