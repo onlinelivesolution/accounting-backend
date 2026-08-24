@@ -88,16 +88,14 @@ class StudentRepository(GenericRepository[Student], IStudentRepository):
             return 1
 
         return last_id + 1
-    
+
     async def get_dropdown_students(
         self,
     ) -> list[Student]:
 
         result = await self.db.execute(
             select(Student)
-            .where(
-                Student.status == "Active"
-            )
+            .where(Student.status == "Active")
             .order_by(
                 Student.firstName,
                 Student.lastName,

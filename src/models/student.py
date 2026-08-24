@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import Optional
 from sqlalchemy.orm import relationship
 from sqlalchemy import Date, DateTime, Integer, String
 from sqlalchemy.orm import (
@@ -33,7 +34,7 @@ class Student(Base):
 
     bloodGroup: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
-    photoPath: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    photoPath: Mapped[Optional[str]] = mapped_column(String(500), nullable=True,)
 
     phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
 

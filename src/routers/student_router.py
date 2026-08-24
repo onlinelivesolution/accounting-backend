@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from src.core.auth_dependency import get_current_user
 from src.schemas.student_schema import (
     StudentCreateDTO,
@@ -48,6 +48,18 @@ async def get_student_dropdown(
 ):
     return await service.get_dropdown_students()
 
+@router.post("/{studentID}/photo")
+async def upload_student_photo(
+    studentID: int,
+    file: UploadFile = File(...),
+    service: IStudentService = Depends(
+        get_student_service
+    ),
+):
+    return await service.upload_photo(
+        studentID,
+        file,
+    )
 
 @router.get(
     "/{student_id}",

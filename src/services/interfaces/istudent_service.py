@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
+from fastapi import UploadFile
 
 from src.schemas.student_schema import (
     StudentCreateDTO,
@@ -54,4 +55,12 @@ class IStudentService(ABC):
     async def get_dropdown_students(
         self,
     ) -> List[StudentDropdownDTO]:
+        pass
+    
+    @abstractmethod
+    async def upload_photo(
+        self,
+        studentID: int,
+        file: UploadFile,
+    ) -> dict:
         pass

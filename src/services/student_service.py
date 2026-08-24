@@ -1,12 +1,16 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 
 from src.models.student import Student
 
 from src.repositories.interfaces.istudent_repository import (
     IStudentRepository,
+)
+
+from src.services.student_photo_service import (
+    StudentPhotoService,
 )
 
 from src.schemas.student_schema import (
@@ -50,7 +54,6 @@ class StudentService(IStudentService):
 
         return StudentDTO.model_validate(student)
 
-
     async def create(
         self,
         data: StudentCreateDTO,
@@ -59,17 +62,12 @@ class StudentService(IStudentService):
         # ---------------------------------------------------------
         # Check duplicate admission number
         # ---------------------------------------------------------
-        existing = await self.repository.get_by_admission_no(
-            data.admissionNo
-        )
+        existing = await self.repository.get_by_admission_no(data.admissionNo)
 
         if existing is not None:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=(
-                    f"Admission number "
-                    f"{data.admissionNo} already exists."
-                ),
+                detail=(f"Admission number " f"{data.admissionNo} already exists."),
             )
 
         # ---------------------------------------------------------
@@ -79,9 +77,7 @@ class StudentService(IStudentService):
         # provide a temporary unique value until SQL Server
         # generates studentID.
         # ---------------------------------------------------------
-        temporary_code = (
-            f"TEMP-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-        )
+        temporary_code = f"TEMP-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
 
         student = Student(
             studentCode=temporary_code,
@@ -92,7 +88,7 @@ class StudentService(IStudentService):
             dateOfBirth=data.dateOfBirth,
             gender=data.gender,
             bloodGroup=data.bloodGroup,
-            photoPath=data.photoPath,
+            photoPath=None,
             phone=data.phone,
             email=data.email,
             address=data.address,
@@ -121,9 +117,7 @@ class StudentService(IStudentService):
         # ---------------------------------------------------------
         current_year = datetime.now().year
 
-        created.studentCode = (
-            f"STU-{current_year}-{created.studentID:06d}"
-        )
+        created.studentCode = f"STU-{current_year}-{created.studentID:06d}"
 
         # ---------------------------------------------------------
         # Commit
@@ -133,7 +127,7 @@ class StudentService(IStudentService):
         await self.repository.db.refresh(created)
 
         return StudentDTO.model_validate(created)
-    
+
     async def update(
         self,
         student_id: int,
@@ -245,24 +239,20 @@ class StudentService(IStudentService):
         updated = await self.repository.update(student)
 
         return StudentDTO.model_validate(updated)
-    
+
     async def get_next_student_code(self) -> str:
 
         # Get the next student ID
-        next_student_id = (
-            await self.repository.get_next_student_id()
-        )
+        next_student_id = await self.repository.get_next_student_id()
 
         # Current year
         current_year = datetime.now().year
 
         # Generate preview code
-        student_code = (
-            f"STU-{current_year}-{next_student_id:06d}"
-        )
+        student_code = f"STU-{current_year}-{next_student_id:06d}"
 
         return student_code
-    
+
     async def get_dropdown_students(
         self,
     ) -> list[StudentDropdownDTO]:
@@ -294,3 +284,50 @@ class StudentService(IStudentService):
             )
 
         return result
+
+    async def upload_photo(
+        self,
+        studentID: int,
+        file: UploadFile,
+    ) -> dict:
+
+        # ----------------------------------------
+        # 1. Find student
+        # ----------------------------------------
+
+        student = await self.repository.get_by_id(studentID)
+
+        if student is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Student not found.",
+            )
+
+        # ----------------------------------------
+        # 2. Save photo
+        # ----------------------------------------
+
+        photo_service = StudentPhotoService()
+
+        photo_path = await photo_service.save_photo(
+            file=file,
+            studentID=studentID,
+        )
+
+        # ----------------------------------------
+        # 3. Update Student.photoPath
+        # ----------------------------------------
+
+        student.photoPath = photo_path
+
+        # ----------------------------------------
+        # 4. Save database change
+        # ----------------------------------------
+
+        updated = await self.repository.update(student)
+
+        return {
+            "message": ("Student photo uploaded successfully."),
+            "studentID": updated.studentID,
+            "photoPath": updated.photoPath,
+        }

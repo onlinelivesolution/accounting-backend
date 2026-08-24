@@ -1,5 +1,6 @@
 # main.py
-from fastapi import FastAPI # or whatever your endpoint file 
+from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI  # or whatever your endpoint file
 from src.routers import studentenrollment_router
 from src.routers import student_router
 from src.routers import academicyear_router
@@ -40,19 +41,18 @@ from src.routers import common_router
 from src.routers import salarydetail_router
 from fastapi.middleware.cors import CORSMiddleware
 
-
 app = FastAPI()
 # CORS setup
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",
-    "http://127.0.0.1:5173"
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, 
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,7 +62,7 @@ app.include_router(studentenrollment_router.router)
 app.include_router(student_router.router)
 app.include_router(academicyear_router.router)
 app.include_router(salarypayment_router.router)
-app.include_router(tenantauth_router.router) 
+app.include_router(tenantauth_router.router)
 app.include_router(managetenant_router.router)
 app.include_router(systemadmin_router.router)
 app.include_router(tenant_router.router)
@@ -97,3 +97,8 @@ app.include_router(salarydetail_router.router)
 app.include_router(payscalemappings_router.router)
 app.include_router(employee_router.router)
 
+app.mount(
+    "/uploads",
+    StaticFiles(directory="uploads"),
+    name="uploads",
+)
