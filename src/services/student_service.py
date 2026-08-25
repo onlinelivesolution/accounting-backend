@@ -284,50 +284,98 @@ class StudentService(IStudentService):
             )
 
         return result
-
+    
     async def upload_photo(
         self,
         studentID: int,
         file: UploadFile,
-    ) -> dict:
-
-        # ----------------------------------------
-        # 1. Find student
-        # ----------------------------------------
+        database_name: str,
+    ):
+        # ---------------------------------------------
+        # 1. Check student exists
+        # ---------------------------------------------
 
         student = await self.repository.get_by_id(studentID)
 
-        if student is None:
+        if not student:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Student not found.",
+                detail=f"Student with ID {studentID} not found.",
             )
 
-        # ----------------------------------------
-        # 2. Save photo
-        # ----------------------------------------
+        # ---------------------------------------------
+        # 2. Save physical photo
+        # ---------------------------------------------
 
         photo_service = StudentPhotoService()
 
         photo_path = await photo_service.save_photo(
             file=file,
             studentID=studentID,
+            database_name=database_name,
         )
 
-        # ----------------------------------------
+        # ---------------------------------------------
         # 3. Update Student.photoPath
-        # ----------------------------------------
+        # ---------------------------------------------
 
         student.photoPath = photo_path
 
-        # ----------------------------------------
+        # ---------------------------------------------
         # 4. Save database change
-        # ----------------------------------------
+        # ---------------------------------------------
 
-        updated = await self.repository.update(student)
+        updated_student = await self.repository.update(student)
 
-        return {
-            "message": ("Student photo uploaded successfully."),
-            "studentID": updated.studentID,
-            "photoPath": updated.photoPath,
-        }
+        # ---------------------------------------------
+        # 5. Return student
+        # ---------------------------------------------
+
+        return StudentDTO.model_validate(updated_student)
+
+    # async def upload_photo(
+    #     self,
+    #     studentID: int,
+    #     file: UploadFile,
+    # ) -> dict:
+
+    #     # ----------------------------------------
+    #     # 1. Find student
+    #     # ----------------------------------------
+
+    #     student = await self.repository.get_by_id(studentID)
+
+    #     if student is None:
+    #         raise HTTPException(
+    #             status_code=status.HTTP_404_NOT_FOUND,
+    #             detail="Student not found.",
+    #         )
+
+    #     # ----------------------------------------
+    #     # 2. Save photo
+    #     # ----------------------------------------
+
+    #     photo_service = StudentPhotoService()
+
+    #     photo_path = await photo_service.save_photo(
+    #         file=file,
+    #         studentID=studentID,
+    #     )
+
+    #     # ----------------------------------------
+    #     # 3. Update Student.photoPath
+    #     # ----------------------------------------
+
+    #     student.photoPath = photo_path
+
+    #     # ----------------------------------------
+    #     # 4. Save database change
+    #     # ----------------------------------------
+
+    #     updated = await self.repository.update(student)
+
+    #     return {
+    #         "message": ("Student photo uploaded successfully."),
+    #         "studentID": updated.studentID,
+    #         "photoPath": updated.photoPath,
+    #     }

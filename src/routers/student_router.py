@@ -1,5 +1,5 @@
 from typing import List
-
+from fastapi import HTTPException
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from src.core.auth_dependency import get_current_user
 from src.schemas.student_schema import (
@@ -17,7 +17,10 @@ from src.depends.service_depends import (
     get_student_service,
 )
 
-router = APIRouter(prefix="/api/students", tags=["Students"],)
+router = APIRouter(
+    prefix="/api/students",
+    tags=["Students"],
+)
 
 
 @router.get(
@@ -29,6 +32,7 @@ async def get_students(
 ):
     return await service.get_all()
 
+
 @router.get("/next-student-code")
 async def get_next_student_code(
     service: IStudentService = Depends(get_student_service),
@@ -37,29 +41,66 @@ async def get_next_student_code(
 
     return {"studentCode": student_code}
 
+
 @router.get(
     "/dropdown",
     response_model=List[StudentDropdownDTO],
 )
 async def get_student_dropdown(
-    service: IStudentService = Depends(
-        get_student_service
-    ),
+    service: IStudentService = Depends(get_student_service),
 ):
     return await service.get_dropdown_students()
+
 
 @router.post("/{studentID}/photo")
 async def upload_student_photo(
     studentID: int,
     file: UploadFile = File(...),
-    service: IStudentService = Depends(
-        get_student_service
-    ),
+    current_user=Depends(get_current_user),
+    service: IStudentService = Depends(get_student_service),
 ):
+    print("========== CURRENT USER ==========")
+    print(current_user)
+    print("==================================")
+
+    database_name = current_user.get("tenant")
+
+    print("DATABASE NAME:", database_name)
+
+    if not database_name:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Tenant database information is missing.",
+        )
+
     return await service.upload_photo(
-        studentID,
-        file,
+        studentID=studentID,
+        file=file,
+        database_name=database_name,
     )
+
+
+# @router.post("/{studentID}/photo")
+# async def upload_student_photo(
+#     studentID: int,
+#     file: UploadFile = File(...),
+#     current_user=Depends(get_current_user),
+#     service: IStudentService = Depends(get_student_service),
+# ):
+#     database_name = current_user.get("databaseName")
+
+#     if not database_name:
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Tenant database information is missing.",
+#         )
+
+#     return await service.upload_photo(
+#         student_id=studentID,
+#         file=file,
+#         database_name=database_name,
+#     )
+
 
 @router.get(
     "/{student_id}",
