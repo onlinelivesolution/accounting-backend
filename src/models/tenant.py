@@ -18,6 +18,7 @@ class Tenant(Base):
     passwordHash = Column(String(255), nullable=False)  
     isActive = Column(Boolean, default=True)
     status = Column(String(20), default="Pending")
+    bannerPath = Column(String(500), nullable=True)
     createdDate = Column(DateTime, default=datetime.utcnow)
     updatedDate = Column(DateTime, nullable=True)    
     approvedBy = Column(String(100), nullable=True)

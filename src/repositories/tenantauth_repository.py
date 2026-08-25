@@ -29,48 +29,31 @@ class TenantAuthRepository(ITenantAuthRepository):
 
         return result.scalars().first()
 
-    async def get_permissions(
-        self,
-        db,
-        role_id: int
-    ):
+    async def get_permissions(self, db, role_id: int):
 
         result = await db.execute(
             select(
-                Permission.permissionName.label(
-                    "permissionName"
-                ),
-                PermissionAction.actionName.label(
-                    "actionName"
-                ),
-                RolePermissionAction.isAllowed.label(
-                    "isAllowed"
-                )
+                Permission.permissionName.label("permissionName"),
+                PermissionAction.actionName.label("actionName"),
+                RolePermissionAction.isAllowed.label("isAllowed"),
             )
             .join(
                 RolePermissionAction,
-                Permission.permissionID
-                ==
-                RolePermissionAction.permissionID
+                Permission.permissionID == RolePermissionAction.permissionID,
             )
             .join(
                 PermissionAction,
                 PermissionAction.permissionActionID
-                ==
-                RolePermissionAction.permissionActionID
+                == RolePermissionAction.permissionActionID,
             )
-            .where(
-                RolePermissionAction.roleID
-                ==
-                role_id
-            )
+            .where(RolePermissionAction.roleID == role_id)
         )
 
         return [
             {
                 "permissionName": row.permissionName,
                 "actionName": row.actionName,
-                "isAllowed": row.isAllowed
+                "isAllowed": row.isAllowed,
             }
             for row in result
         ]

@@ -1,9 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
 from src.repositories.interfaces.itenant_repository import ITenantRepository
-
+from sqlalchemy import select
 from src.schemas.tenant_schema import TenantCreate
 from common.utils.systemadmin_security import hash_password
+
 # from src.core.tenant_table_creator import create_tenant_tables
 from src.core.tenant_schema_creator import create_tenant_schema
 from src.core.tenant_seed_data import copy_master_data
@@ -47,7 +48,7 @@ class TenantRepository(ITenantRepository):
             tenant = Tenant(
                 companyName=request.companyName,
                 adminName=request.adminName,
-                databaseName=request.databaseName,
+                databaseName=database_name,
                 email=request.email,
                 # HASH PASSWORD
                 passwordHash=hash_password(request.password),
@@ -69,3 +70,30 @@ class TenantRepository(ITenantRepository):
 
             await self.db.rollback()
             raise
+
+    async def get_by_database_name(
+        self,
+        database_name: str,
+    ):
+        result = await self.db.execute(
+            select(Tenant).where(Tenant.databaseName == database_name)
+        )
+
+        return result.scalars().first()
+
+    async def update_banner_path(
+        self,
+        tenant: Tenant,
+        banner_path: str,
+    ):
+
+        tenant.bannerPath = banner_path
+        tenant.updatedDate = datetime.utcnow()
+
+        self.db.add(tenant)
+
+        await self.db.commit()
+
+        await self.db.refresh(tenant)
+
+        return tenant

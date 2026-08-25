@@ -8,24 +8,20 @@ class ITenantRepository(ABC):
     @abstractmethod
     async def register_tenant(self, request: TenantCreate):
         pass
-    
-    # @abstractmethod
-    # async def create_tenant(self, tenant):
-    #     pass
+
+    @abstractmethod
+    async def get_by_database_name(
+        self,
+        database_name: str,
+    ):
+        pass
+
+    @abstractmethod
+    async def update_banner_path(
+        self,
+        tenant,
+        banner_path: str,
+    ):
+        pass
 
 
-    # @abstractmethod
-    # async def get_by_email(self, email: str):
-    #     pass
-
-
-    # @abstractmethod
-    # async def get_pending_tenants(self):
-    #     pass
-
-
-    # @abstractmethod
-    # async def get_by_id(self, tenant_id: int):
-    #     pass
-    
-    
