@@ -6,8 +6,12 @@ from src.models.subject import Subject
 from src.models.classsubject import ClassSubject
 
 # Examination
-from src.models.exam import Exam
+from src.models.examtype import ExamType
+from src.models.examination import Examination
 from src.models.examsubject import ExamSubject
+from src.models.examschedule import ExamSchedule
+from src.models.studentexammark import StudentExamMark
+from src.models.studentexamresult import StudentExamResult
 
 # Student Management
 from src.models.student import Student

@@ -1,11 +1,12 @@
 # main.py
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI  # or whatever your endpoint file
+from src.routers import tenantauth_router
 from src.routers import studentenrollment_router
+from src.routers import examination_router
 from src.routers import student_router
 from src.routers import academicyear_router
 from src.routers import salarypayment_router
-from src.routers import tenantauth_router
 from src.routers import managetenant_router
 from src.routers import customerreceipt_router
 from src.routers import systemadmin_router
@@ -58,11 +59,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(tenantauth_router.router)
+app.include_router(examination_router.router)
 app.include_router(studentenrollment_router.router)
 app.include_router(student_router.router)
 app.include_router(academicyear_router.router)
 app.include_router(salarypayment_router.router)
-app.include_router(tenantauth_router.router)
 app.include_router(managetenant_router.router)
 app.include_router(systemadmin_router.router)
 app.include_router(tenant_router.router)
