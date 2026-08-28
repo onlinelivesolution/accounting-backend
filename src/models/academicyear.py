@@ -30,11 +30,11 @@ class AcademicYear(Base):
 
     updatedDate: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    exams = orm_relationship(
-        "Exam",
+    examinations = orm_relationship(
+        "Examination",
         back_populates="academicYear",
         lazy="selectin",
-        cascade="all, delete-orphan", 
+        cascade="all, delete-orphan",
     )
     
     enrollments = relationship(

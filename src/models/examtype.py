@@ -43,7 +43,3 @@ class ExamType(Base):
         nullable=True
     )
 
-    examinations: Mapped[list["Examination"]] = relationship(
-        "Examination",
-        back_populates="examType"
-    )

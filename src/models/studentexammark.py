@@ -97,17 +97,15 @@ class StudentExamMark(Base):
         nullable=True
     )
 
-    examination: Mapped["Examination"] = relationship(
-        "Examination",
-        back_populates="studentMarks"
-    )
 
     examSubject: Mapped["ExamSubject"] = relationship(
         "ExamSubject",
-        back_populates="studentMarks"
-    )
+        back_populates="studentMarks",
+        lazy="selectin",
+    ) 
 
     student: Mapped["Student"] = relationship(
-        "Student"
+        "Student",
+        lazy="selectin",
     )
 

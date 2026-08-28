@@ -2,17 +2,16 @@ from typing import List, Optional
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from common.generic.generic_repository import GenericRepository
 from src.models.examination import Examination
 from src.repositories.interfaces.iexamination_repository import (
     IExaminationRepository,
 )
 
-
-class ExaminationRepository(IExaminationRepository):
+class ExaminationRepository(GenericRepository[Examination], IExaminationRepository):
 
     def __init__(self, db: AsyncSession):
-        self.db = db
+        super().__init__(Examination, db)
 
     # ---------------------------------------------------------
     # Create
@@ -26,6 +25,8 @@ class ExaminationRepository(IExaminationRepository):
         self.db.add(examination)
 
         await self.db.flush()
+
+        await self.db.commit()
 
         await self.db.refresh(examination)
 

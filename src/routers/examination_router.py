@@ -3,9 +3,8 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from src.core.tenant_session_factory import get_tenant_session
+from src.services.interfaces.iexamination_service import IExaminationService
+from src.depends.service_depends import get_examination_service
 
 from src.schemas.examination_schema import (
     ExaminationCreateDTO,
@@ -29,30 +28,16 @@ router = APIRouter(
 
 
 # ============================================================
-# Dependency
-# ============================================================
-
-def get_examination_service(
-    db: AsyncSession = Depends(get_tenant_session),
-) -> ExaminationService:
-
-    repository = ExaminationRepository(db)
-
-    return ExaminationService(repository)
-
-
-# ============================================================
 # CREATE EXAMINATION
 # ============================================================
 
-@router.post(
-    "",
+@router.post("/createExamination",
     response_model=ExaminationDTO,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_examination(
     data: ExaminationCreateDTO,
-    service: ExaminationService = Depends(
+    service: IExaminationService = Depends(
         get_examination_service
     ),
 ):

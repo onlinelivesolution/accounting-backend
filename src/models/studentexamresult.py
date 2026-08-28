@@ -114,11 +114,6 @@ class StudentExamResult(Base):
         nullable=True
     )
 
-    examination: Mapped["Examination"] = relationship(
-        "Examination",
-        back_populates="studentResults"
-    )
 
-    student: Mapped["Student"] = relationship(
-        "Student"
-    )
+    
+  

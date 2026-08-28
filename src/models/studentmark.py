@@ -44,4 +44,4 @@ class StudentMark(Base):
 
     updatedDate: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    examSubject = orm_relationship("ExamSubject", back_populates="marks")
+    

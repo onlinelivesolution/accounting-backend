@@ -53,4 +53,4 @@ class StudentResult(Base):
     examID: Mapped[int] = mapped_column(ForeignKey("Exam.examID"), nullable=False)
 
 
-    exam = orm_relationship("Exam", back_populates="results")
+  

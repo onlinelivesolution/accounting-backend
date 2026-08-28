@@ -201,6 +201,11 @@ from src.repositories.academicyear_repository import AcademicYearRepository
 def get_academicyear_repository(db: AsyncSession = Depends(get_tenant_db)):
     return AcademicYearRepository(db)
 
+# Examination
+from src.repositories.examination_repository import ExaminationRepository
+def get_examination_repository(db: AsyncSession = Depends(get_tenant_db)):
+    return ExaminationRepository(db)
+
 from src.repositories.student_repository import StudentRepository
 def get_student_repository(db: AsyncSession = Depends(get_tenant_db)):
     return StudentRepository(db)

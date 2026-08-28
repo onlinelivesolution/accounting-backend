@@ -1,17 +1,11 @@
 from datetime import date, datetime
-from src.models.academicyear import AcademicYear
-from src.models.examschedule import ExamSchedule
-from src.models.examsubject import ExamSubject
-from src.models.studentexamresult import StudentExamResult
-from src.models.studentexammark import StudentExamMark
+
 from sqlalchemy import (
-    Boolean,
     Date,
     DateTime,
     ForeignKey,
     Integer,
     String,
-    Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,78 +13,74 @@ from src.services.database import Base
 
 
 class Examination(Base):
-    __tablename__ = "Exam"
+    __tablename__ = "Examination"
 
     examID: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
-        autoincrement=True
+        autoincrement=True,
     )
 
     academicYearID: Mapped[int] = mapped_column(
         ForeignKey("AcademicYear.academicYearID"),
-        nullable=False
+        nullable=False,
     )
 
     examName: Mapped[str] = mapped_column(
         String(100),
-        nullable=False
+        nullable=False,
     )
 
     examType: Mapped[str] = mapped_column(
         String(50),
-        nullable=False
+        nullable=False,
     )
 
     startDate: Mapped[date | None] = mapped_column(
         Date,
-        nullable=True
+        nullable=True,
     )
 
     endDate: Mapped[date | None] = mapped_column(
         Date,
-        nullable=True
+        nullable=True,
     )
 
     status: Mapped[str] = mapped_column(
         String(20),
-        nullable=False
+        nullable=False,
     )
 
     createdDate: Mapped[datetime] = mapped_column(
         DateTime,
-        nullable=False
+        nullable=False,
     )
 
     updatedDate: Mapped[datetime | None] = mapped_column(
         DateTime,
-        nullable=True
+        nullable=True,
     )
 
-    # -----------------------------------------
+    # =========================================================
     # Relationships
-    # -----------------------------------------
+    # =========================================================
 
     academicYear: Mapped["AcademicYear"] = relationship(
-        "AcademicYear"
+        "AcademicYear",
+        back_populates="examinations",
+        lazy="selectin",
     )
 
     examSubjects: Mapped[list["ExamSubject"]] = relationship(
         "ExamSubject",
-        back_populates="examination"
+        back_populates="examination",
+        lazy="selectin",
+        cascade="all, delete-orphan",
     )
 
     examSchedules: Mapped[list["ExamSchedule"]] = relationship(
         "ExamSchedule",
-        back_populates="examination"
-    )
-
-    studentMarks: Mapped[list["StudentExamMark"]] = relationship(
-        "StudentExamMark",
-        back_populates="examination"
-    )
-
-    studentResults: Mapped[list["StudentExamResult"]] = relationship(
-        "StudentExamResult",
-        back_populates="examination"
+        back_populates="examination",
+        lazy="selectin",
+        cascade="all, delete-orphan",
     )

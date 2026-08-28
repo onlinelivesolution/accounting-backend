@@ -1,8 +1,5 @@
 from datetime import date, datetime, time
-# from src.models.examination import Examination
-# from src.models.section import Section
-# from src.models.schoolclass import SchoolClass
-# from src.models.examsubject import ExamSubject
+
 from sqlalchemy import (
     Boolean,
     Date,
@@ -23,85 +20,93 @@ class ExamSchedule(Base):
     examScheduleID: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
-        autoincrement=True
+        autoincrement=True,
     )
 
     examID: Mapped[int] = mapped_column(
         ForeignKey("Examination.examID"),
-        nullable=False
+        nullable=False,
     )
 
     examSubjectID: Mapped[int] = mapped_column(
         ForeignKey("ExamSubject.examSubjectID"),
-        nullable=False
+        nullable=False,
     )
 
     classID: Mapped[int] = mapped_column(
         ForeignKey("SchoolClass.classID"),
-        nullable=False
+        nullable=False,
     )
 
     sectionID: Mapped[int | None] = mapped_column(
         ForeignKey("Section.sectionID"),
-        nullable=True
+        nullable=True,
     )
 
     examDate: Mapped[date] = mapped_column(
         Date,
-        nullable=False
+        nullable=False,
     )
 
     startTime: Mapped[time] = mapped_column(
         Time,
-        nullable=False
+        nullable=False,
     )
 
     endTime: Mapped[time] = mapped_column(
         Time,
-        nullable=False
+        nullable=False,
     )
 
     roomNo: Mapped[str | None] = mapped_column(
         String(50),
-        nullable=True
+        nullable=True,
     )
 
     instructions: Mapped[str | None] = mapped_column(
         String(500),
-        nullable=True
+        nullable=True,
     )
 
     isActive: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
-        default=True
+        default=True,
     )
 
     createdAt: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
-        default=datetime.utcnow
+        default=datetime.utcnow,
     )
 
     updatedAt: Mapped[datetime | None] = mapped_column(
         DateTime,
-        nullable=True
+        nullable=True,
     )
+
+    # =========================================================
+    # Relationships
+    # =========================================================
 
     examination: Mapped["Examination"] = relationship(
         "Examination",
-        back_populates="examSchedules"
+        back_populates="examSchedules",
+        lazy="selectin",
     )
 
     examSubject: Mapped["ExamSubject"] = relationship(
         "ExamSubject",
-        back_populates="schedules"
+        back_populates="examSchedules",
+        lazy="selectin",
     )
 
     schoolClass: Mapped["SchoolClass"] = relationship(
-        "SchoolClass"
+        "SchoolClass",
+        lazy="selectin",
     )
 
-    section: Mapped["Section"] = relationship(
-        "Section"
+    section: Mapped["Section | None"] = relationship(
+        "Section",
+        lazy="selectin",
     )

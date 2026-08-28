@@ -407,6 +407,20 @@ def get_student_service(
 ) -> IStudentService:
     return StudentService(repository)
 
+# Examination Service Dependency
+from src.depends.repository_depends import get_examination_repository
+from src.repositories.interfaces.iexamination_repository import (
+    IExaminationRepository,
+)
+from src.services.interfaces.iexamination_service import IExaminationService
+from src.services.examination_service import ExaminationService
+
+
+def get_examination_service(
+    repository: IExaminationRepository = Depends(get_examination_repository),
+) -> IExaminationService:
+    return ExaminationService(repository)
+
 from src.depends.repository_depends import get_student_enrollment_repository
 from src.repositories.interfaces.istudentenrollment_repository import (
     IStudentEnrollmentRepository,
