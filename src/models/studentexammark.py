@@ -98,14 +98,23 @@ class StudentExamMark(Base):
     )
 
 
-    examSubject: Mapped["ExamSubject"] = relationship(
-        "ExamSubject",
-        back_populates="studentMarks",
-        lazy="selectin",
-    ) 
+    studentID: Mapped[int] = mapped_column(
+        ForeignKey("Student.studentID"),
+        nullable=False,
+    )
 
-    student: Mapped["Student"] = relationship(
-        "Student",
-        lazy="selectin",
+    examSubjectID: Mapped[int] = mapped_column(
+        ForeignKey("ExamSubject.examSubjectID"),
+        nullable=False,
+    )
+    
+    studentID: Mapped[int] = mapped_column(
+        ForeignKey("Student.studentID"),
+        nullable=False,
+    )
+
+    examSubjectID: Mapped[int] = mapped_column(
+        ForeignKey("ExamSubject.examSubjectID"),
+        nullable=False,
     )
 

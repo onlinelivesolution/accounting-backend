@@ -35,7 +35,7 @@ class ExaminationService(IExaminationService):
         examination = Examination(
             academicYearID=data.academicYearID,
             examName=data.examName,
-            examType=data.examType,
+            examTypeID=data.examTypeID,
             startDate=data.startDate,
             endDate=data.endDate,
             status=data.status or "Active",
@@ -116,89 +116,30 @@ class ExaminationService(IExaminationService):
     async def update(
         self,
         examID: int,
-        data: ExaminationUpdateDTO
+        data: ExaminationUpdateDTO,
     ) -> ExaminationDTO:
 
-        # -----------------------------------------------------
-        # Find existing examination
-        # -----------------------------------------------------
+        examination = await self.repository.get_by_id(examID)
 
-        examination = await self.repository.get_by_id(
-            examID
-        )
-
-        if examination is None:
+        if not examination:
             raise ValueError(
-                f"Examination with ID {examID} not found."
+                "Examination not found."
             )
-
-        # -----------------------------------------------------
-        # Calculate final values for validation
-        # -----------------------------------------------------
-
-        finalStartDate = (
-            data.startDate
-            if data.startDate is not None
-            else examination.startDate
-        )
-
-        finalEndDate = (
-            data.endDate
-            if data.endDate is not None
-            else examination.endDate
-        )
-
-        if (
-            finalStartDate is not None
-            and finalEndDate is not None
-            and finalStartDate > finalEndDate
-        ):
-            raise ValueError(
-                "Start date cannot be greater than end date."
-            )
-
-        # -----------------------------------------------------
-        # Update academic year
-        # -----------------------------------------------------
 
         if data.academicYearID is not None:
-            examination.academicYearID = (
-                data.academicYearID
-            )
-
-        # -----------------------------------------------------
-        # Update exam name
-        # -----------------------------------------------------
+            examination.academicYearID = data.academicYearID
 
         if data.examName is not None:
+            examination.examName = data.examName
 
-            examName = data.examName.strip()
+        if data.examTypeID is not None:
 
-            if not examName:
+            if data.examTypeID <= 0:
                 raise ValueError(
-                    "Exam name cannot be empty."
+                    "Exam type ID must be greater than zero."
                 )
 
-            examination.examName = examName
-
-        # -----------------------------------------------------
-        # Update exam type
-        # -----------------------------------------------------
-
-        if data.examType is not None:
-
-            examType = data.examType.strip()
-
-            if not examType:
-                raise ValueError(
-                    "Exam type cannot be empty."
-                )
-
-            examination.examType = examType
-
-        # -----------------------------------------------------
-        # Update dates
-        # -----------------------------------------------------
+            examination.examTypeID = data.examTypeID
 
         if data.startDate is not None:
             examination.startDate = data.startDate
@@ -206,22 +147,10 @@ class ExaminationService(IExaminationService):
         if data.endDate is not None:
             examination.endDate = data.endDate
 
-        # -----------------------------------------------------
-        # Update status
-        # -----------------------------------------------------
-
         if data.status is not None:
             examination.status = data.status
 
-        # -----------------------------------------------------
-        # Updated date
-        # -----------------------------------------------------
-
         examination.updatedDate = datetime.utcnow()
-
-        # -----------------------------------------------------
-        # Save
-        # -----------------------------------------------------
 
         updated = await self.repository.update(
             examination

@@ -117,10 +117,12 @@ class ExaminationRepository(GenericRepository[Examination], IExaminationReposito
 
     async def update(
         self,
-        examination: Examination
+        examination: Examination,
     ) -> Examination:
 
         await self.db.flush()
+
+        await self.db.commit()
 
         await self.db.refresh(examination)
 

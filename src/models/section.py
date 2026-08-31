@@ -33,3 +33,9 @@ class Section(Base):
         "StudentEnrollment",
         back_populates="section",
     )
+    
+    examSchedules: Mapped[list["ExamSchedule"]] = relationship(
+        "ExamSchedule",
+        back_populates="section",
+        lazy="selectin",
+    )

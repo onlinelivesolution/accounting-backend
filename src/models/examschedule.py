@@ -89,6 +89,8 @@ class ExamSchedule(Base):
     # Relationships
     # =========================================================
 
+
+
     examination: Mapped["Examination"] = relationship(
         "Examination",
         back_populates="examSchedules",
@@ -103,10 +105,12 @@ class ExamSchedule(Base):
 
     schoolClass: Mapped["SchoolClass"] = relationship(
         "SchoolClass",
+        back_populates="examSchedules",
         lazy="selectin",
     )
 
     section: Mapped["Section | None"] = relationship(
         "Section",
+        back_populates="examSchedules",
         lazy="selectin",
     )

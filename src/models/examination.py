@@ -31,8 +31,8 @@ class Examination(Base):
         nullable=False,
     )
 
-    examType: Mapped[str] = mapped_column(
-        String(50),
+    examTypeID: Mapped[int] = mapped_column(
+        ForeignKey("ExamType.examTypeID"),
         nullable=False,
     )
 
@@ -70,7 +70,13 @@ class Examination(Base):
         back_populates="examinations",
         lazy="selectin",
     )
-
+    
+    examType: Mapped["ExamType"] = relationship(
+        "ExamType",
+        back_populates="examinations",
+        lazy="selectin",
+    )
+    
     examSubjects: Mapped[list["ExamSubject"]] = relationship(
         "ExamSubject",
         back_populates="examination",

@@ -113,6 +113,23 @@ class StudentExamResult(Base):
         DateTime,
         nullable=True
     )
+    
+    examID: Mapped[int] = mapped_column(
+        ForeignKey("Examination.examID"),
+        nullable=False,
+    )
+    
+    examination: Mapped["Examination"] = relationship(
+        "Examination",
+        back_populates="studentResults",
+        lazy="selectin",
+    )
+
+    student: Mapped["Student"] = relationship(
+        "Student",
+        back_populates="studentExamResults",
+        lazy="selectin",
+    )
 
 
     

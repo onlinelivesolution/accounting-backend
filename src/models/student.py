@@ -79,3 +79,10 @@ class Student(Base):
         back_populates="student",
         lazy="selectin",
     )
+    
+    studentExamMarks: Mapped[list["StudentExamMark"]] = relationship(
+        "StudentExamMark",
+        back_populates="student",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )

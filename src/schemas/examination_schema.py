@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict
 class ExaminationCreateDTO(BaseModel):
     academicYearID: int
     examName: str
-    examType: str
+    examTypeID: int
     startDate: Optional[date] = None
     endDate: Optional[date] = None
     status: str = "Active"
@@ -16,7 +16,7 @@ class ExaminationCreateDTO(BaseModel):
 class ExaminationUpdateDTO(BaseModel):
     academicYearID: Optional[int] = None
     examName: Optional[str] = None
-    examType: Optional[str] = None
+    examTypeID: Optional[int] = None
     startDate: Optional[date] = None
     endDate: Optional[date] = None
     status: Optional[str] = None
@@ -26,7 +26,7 @@ class ExaminationDTO(BaseModel):
     examID: int
     academicYearID: int
     examName: str
-    examType: str
+    examTypeID: int
     startDate: Optional[date] = None
     endDate: Optional[date] = None
     status: str

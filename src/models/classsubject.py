@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.orm import relationship as orm_relationship
+from sqlalchemy.orm import relationship as relationship
 
 from src.services.database import Base
 
@@ -29,10 +29,12 @@ class ClassSubject(Base):
     createdDate: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     # Relationships
-    schoolClass = orm_relationship("SchoolClass", back_populates="classSubjects")
+    schoolClass = relationship("SchoolClass", back_populates="classSubjects")
 
-    subject = orm_relationship("Subject", back_populates="classSubjects")
+    subject = relationship("Subject", back_populates="classSubjects")
 
-    examSubjects = orm_relationship(
-        "ExamSubject", back_populates="classSubject", lazy="selectin"
+    examSubjects: Mapped[list["ExamSubject"]] = relationship(
+        "ExamSubject",
+        back_populates="classSubject",
+        lazy="selectin",
     )

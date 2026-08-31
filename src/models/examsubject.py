@@ -62,6 +62,7 @@ class ExamSubject(Base):
     # Relationships
     # =========================================================
 
+
     examination: Mapped["Examination"] = relationship(
         "Examination",
         back_populates="examSubjects",
@@ -70,6 +71,7 @@ class ExamSubject(Base):
 
     classSubject: Mapped["ClassSubject"] = relationship(
         "ClassSubject",
+        back_populates="examSubjects",
         lazy="selectin",
     )
 
